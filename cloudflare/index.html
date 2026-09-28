@@ -1,0 +1,2176 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>window.API_URL = 'https://script.google.com/macros/s/AKfycbwlnBM2DFINzze6wdogr0IlneQ46M2UGj05NTZyD9hZX15rn8Q-s_e5DES2dU8UftGQ/exec';</script>
+  <title>판매·재고 관리</title>
+  <style>
+:root {
+  color-scheme: light;
+  --bg: #f6f6f3;
+  --surface: #ffffff;
+  --surface-2: #f1f0ec;
+  --ink: #111110;
+  --ink-2: #52514e;
+  --muted: #898781;
+  --line: #e4e3dd;
+  --accent: #2a78d6;
+  --accent-ink: #ffffff;
+  --good: #006300;
+  --bad: #c62f2f;
+  --warn-bg: #fff4d6;
+  --warn-ink: #7a5200;
+  --bad-bg: #fde7e7;
+  --good-bg: #e5f4e5;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300;
+  --grid: #e1e0d9;
+  --radius: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0f0f0e; --surface: #1a1a19; --surface-2: #232321;
+    --ink: #f5f5f2; --ink-2: #c3c2b7; --muted: #898781; --line: #2f2f2c;
+    --accent: #3987e5; --good: #3cc23c; --bad: #ff7a7a;
+    --warn-bg: #3a2e0c; --warn-ink: #ffd27a; --bad-bg: #3d1717; --good-bg: #16301a;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300;
+    --grid: #2c2c2a;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 14px/1.5 system-ui, -apple-system, "Segoe UI", "Malgun Gothic", sans-serif;
+}
+h1, h2, h3 { margin: 0; font-weight: 650; }
+h2 { font-size: 17px; margin-bottom: 12px; }
+h3 { font-size: 14px; margin-bottom: 8px; color: var(--ink-2); }
+button, input, select { font: inherit; color: inherit; }
+button {
+  border: 1px solid var(--line); background: var(--surface); border-radius: 8px;
+  padding: 7px 12px; cursor: pointer;
+}
+button:hover { background: var(--surface-2); }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+button.primary:hover { filter: brightness(1.08); }
+button.small { padding: 3px 8px; font-size: 12px; }
+button:disabled { opacity: .5; cursor: default; }
+input, select {
+  border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 6px 9px;
+  min-width: 0;
+}
+input[type=number] { width: 100px; }
+label.field { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--ink-2); }
+
+header.top {
+  position: sticky; top: 0; z-index: 10; background: var(--surface); border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; gap: 16px; padding: 0 20px; height: 56px;
+}
+header.top h1 { font-size: 16px; white-space: nowrap; }
+nav.tabs { display: flex; gap: 2px; overflow-x: auto; flex: 1; }
+nav.tabs button { border: 0; background: none; padding: 8px 12px; border-radius: 8px; white-space: nowrap; color: var(--ink-2); }
+nav.tabs button.on { background: var(--surface-2); color: var(--ink); font-weight: 600; }
+.who { font-size: 12px; color: var(--muted); white-space: nowrap; }
+select.biz {
+  font-weight: 650; border-radius: 999px; padding: 5px 12px; flex: none;
+  background: var(--ink); color: var(--surface); border-color: var(--ink);
+}
+select.biz.alt { background: var(--s2); border-color: var(--s2); color: #fff; }
+.biz-tag { display: inline-block; padding: 0 8px; border-radius: 999px; font-size: 12px; background: var(--ink); color: var(--surface); margin-right: 6px; vertical-align: 2px; }
+.biz-tag.alt { background: var(--s2); color: #fff; }
+
+main { max-width: 1200px; margin: 0 auto; padding: 20px; }
+section.page { display: none; }
+section.page.on { display: block; }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+.grid { display: grid; gap: 16px; }
+.grid.kpis { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); margin-bottom: 16px; }
+.grid.two { grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; }
+.kpi .label { font-size: 12px; color: var(--ink-2); }
+.kpi .value { font-size: 24px; font-weight: 650; margin-top: 2px; }
+.kpi .sub { font-size: 12px; color: var(--muted); }
+.up { color: var(--good); } .down { color: var(--bad); }
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips button { border-radius: 999px; padding: 4px 12px; font-size: 13px; }
+.chips button.on { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { padding: 7px 10px; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; }
+th { font-weight: 600; color: var(--ink-2); font-size: 12px; background: var(--surface); position: sticky; top: 0; }
+td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+tr.total td { font-weight: 650; border-top: 2px solid var(--line); }
+tbody tr:hover td { background: var(--surface-2); }
+
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px; border-radius: 999px; font-size: 12px; }
+.badge.warn { background: var(--warn-bg); color: var(--warn-ink); }
+.badge.bad { background: var(--bad-bg); color: var(--bad); }
+.badge.good { background: var(--good-bg); color: var(--good); }
+.dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+
+.muted { color: var(--muted); font-size: 12px; }
+.note { background: var(--surface-2); border-radius: 8px; padding: 10px 12px; font-size: 13px; color: var(--ink-2); }
+.drop {
+  border: 2px dashed var(--line); border-radius: var(--radius); padding: 28px; text-align: center;
+  color: var(--ink-2); cursor: pointer;
+}
+.drop.over { border-color: var(--accent); background: var(--surface-2); }
+.chart-box { position: relative; height: 280px; }
+
+#toast {
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 100;
+  background: var(--ink); color: var(--surface); padding: 10px 16px; border-radius: 8px;
+  display: none; max-width: calc(100% - 32px);
+}
+#toast.err { background: var(--bad); color: #fff; }
+#loading { position: fixed; inset: 0; background: rgba(0,0,0,.15); display: none; z-index: 90; align-items: center; justify-content: center; }
+#loading div { background: var(--surface); padding: 14px 20px; border-radius: 10px; }
+
+#login { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 200; padding: 16px; }
+#login .card { width: 100%; max-width: 340px; }
+#login input { width: 100%; margin: 12px 0; }
+#login button { width: 100%; }
+
+@media (max-width: 640px) {
+  header.top { padding: 0 12px; gap: 8px; }
+  header.top h1 { display: none; }
+  .who { display: none; }
+  main { padding: 16px; }
+  .kpi .value { font-size: 20px; }
+  .grid.two { grid-template-columns: 1fr; }
+}
+</style>
+
+</head>
+<body>
+  <!-- 로그인 -->
+  <div id="login">
+    <div class="card">
+      <h2>판매·재고 관리</h2>
+      <div class="muted">팀 공용 비밀번호를 입력하세요.</div>
+      <form id="loginForm">
+        <input type="password" id="pw" placeholder="비밀번호" autocomplete="current-password">
+        <button class="primary" type="submit">들어가기</button>
+      </form>
+      <div id="loginErr" class="muted" style="color:var(--bad);margin-top:8px"></div>
+    </div>
+  </div>
+
+  <header class="top">
+    <h1>판매·재고 관리</h1>
+    <select id="bizSel" class="biz" title="사업자 선택" aria-label="사업자 선택"></select>
+    <nav class="tabs" id="tabs">
+      <button data-page="dash" class="on">대시보드</button>
+      <button data-page="upload">판매 업로드</button>
+      <button data-page="profit">이익 분석</button>
+      <button data-page="stock">재고</button>
+      <button data-page="settings">설정</button>
+    </nav>
+    <span class="who" id="whoLabel"></span>
+  </header>
+
+  <main>
+    <!-- 대시보드 -->
+    <section class="page on" id="page-dash">
+      <div class="row" style="justify-content:space-between;margin-bottom:14px">
+        <div class="chips" id="dashPeriod"></div>
+        <div class="row" id="dashCustom" style="display:none">
+          <input type="date" id="dashFrom"> ~ <input type="date" id="dashTo">
+        </div>
+      </div>
+      <div class="grid kpis" id="dashKpis"></div>
+      <div class="card">
+        <h3>일별 매출 (채널 그룹별)</h3>
+        <div class="chart-box"><canvas id="dailyChart" role="img" aria-label="일별 채널 그룹별 매출 막대 그래프"></canvas></div>
+        <div id="dailyEmpty" class="muted" style="display:none">이 기간에 판매 데이터가 없습니다.</div>
+      </div>
+      <div class="grid two">
+        <div class="card"><h3>채널 그룹별</h3><div class="table-wrap" id="dashGroups"></div></div>
+        <div class="card"><h3>재고 경고</h3><div class="table-wrap" id="dashAlerts"></div></div>
+      </div>
+      <div class="card"><h3>잘 팔린 상품 TOP 10</h3><div class="table-wrap" id="dashTop"></div></div>
+    </section>
+
+    <!-- 판매 업로드 -->
+    <section class="page" id="page-upload">
+      <div class="card">
+        <h2>판매 파일 올리기</h2>
+        <div class="row" style="margin-bottom:12px">
+          <label class="field">올리는 사람
+            <input id="whoInput" placeholder="이름">
+          </label>
+          <label class="field">채널
+            <select id="upChannel"></select>
+          </label>
+        </div>
+        <div id="upHint" class="note" style="margin-bottom:12px"></div>
+        <div class="drop" id="upDrop">
+          여기에 엑셀 파일을 끌어다 놓거나 <b>클릭</b>해서 고르세요 (.xlsx, .xls, .csv)
+          <input type="file" id="upFile" accept=".xlsx,.xls,.csv" hidden>
+        </div>
+      </div>
+      <div id="upResult"></div>
+      <div class="card">
+        <h2>이카운트 거래처 파일 여러 개 한 번에 올리기</h2>
+        <div class="note" style="margin-bottom:12px">
+          이카운트 <b>판매현황(거래처별)</b> 엑셀을 거래처마다 받아 한꺼번에 올리세요. 파일 제목의 거래처명으로 채널을 자동으로 고르고,
+          처음 보는 거래처는 <b>도매</b> 그룹 채널로 새로 만듭니다. (주)쿠팡 파일은 자동으로 제외합니다. 같은 날짜를 다시 올리면 새 파일로 바뀝니다.
+        </div>
+        <div class="drop" id="bkDrop">
+          이카운트 엑셀 여러 개를 끌어다 놓거나 <b>클릭</b>해서 고르세요
+          <input type="file" id="bkFile" accept=".xlsx,.xls" multiple hidden>
+        </div>
+        <div id="bkResult" style="margin-top:12px"></div>
+      </div>
+      <div class="card">
+        <h3>업로드 이력</h3>
+        <div class="table-wrap" id="upHistory"></div>
+      </div>
+    </section>
+
+    <!-- 이익 분석 -->
+    <section class="page" id="page-profit">
+      <div class="row" style="justify-content:space-between;margin-bottom:14px">
+        <div class="chips" id="profitPeriod"></div>
+        <div class="row" id="profitCustom" style="display:none">
+          <input type="date" id="profitFrom"> ~ <input type="date" id="profitTo">
+        </div>
+      </div>
+      <div class="card">
+        <div class="row" style="justify-content:space-between;margin-bottom:10px">
+          <div class="chips" id="profitView"></div>
+          <button id="profitExport" class="small">엑셀로 내려받기</button>
+        </div>
+        <div class="table-wrap" id="profitTable"></div>
+        <div class="muted" style="margin-top:8px">
+          순이익 = 매출 − 반품 − 원가 − 수수료 − 배송비 − 반품비 − 광고비.
+          쿠팡 로켓배송은 공급가 × 판매수량으로 계산합니다.
+          광고 보고서로 올린 광고비는 해당 상품에 바로 들어가고, 배송비와 상품 구분 없는 광고비는 그날 채널 매출 비율로 나눠 넣습니다.
+          ROAS = 광고 전환매출 ÷ 광고비 (광고 보고서 기준).
+        </div>
+      </div>
+      <div class="card">
+        <h3>광고 보고서 올리기</h3>
+        <div class="row" style="margin-bottom:10px">
+          <label class="field">채널<select id="adUpChannel"></select></label>
+          <label class="field">보고서 형식<select id="adUpFormat"></select></label>
+          <button id="tplAds" class="small">통합 광고 양식 내려받기</button>
+        </div>
+        <div class="note" style="margin-bottom:10px">
+          쿠팡은 광고센터 → 보고서 → <b>상품광고 보고서</b>를 <b>일별</b>로 내려받아 그대로 올리세요.
+          광고비와 광고 전환매출이 상품별로 들어가고, 이익 분석에 광고매출·ROAS가 표시됩니다.
+          파일에 있는 날짜는 그 채널의 광고비가 이 파일 내용으로 바뀝니다 (직접 입력한 광고비 포함).
+        </div>
+        <div class="drop" id="adDrop">
+          광고 보고서 엑셀을 끌어다 놓거나 <b>클릭</b>해서 고르세요
+          <input type="file" id="adFile" accept=".xlsx,.xls,.csv" hidden>
+        </div>
+        <div id="adResult" style="margin-top:12px"></div>
+      </div>
+      <div class="card">
+        <h3>광고비 직접 입력 (보고서가 없는 채널)</h3>
+        <div class="row">
+          <label class="field">날짜<input type="date" id="adDate"></label>
+          <label class="field">채널<select id="adChannel"></select></label>
+          <label class="field">금액(원)<input type="number" id="adAmount" min="0" step="100"></label>
+          <button class="primary" id="adSave">저장</button>
+        </div>
+        <div class="muted" style="margin-top:6px">같은 날짜·채널은 덮어씁니다. 0을 넣으면 삭제됩니다.</div>
+        <div class="table-wrap" id="adList" style="margin-top:12px;max-height:260px"></div>
+      </div>
+    </section>
+
+    <!-- 재고 -->
+    <section class="page" id="page-stock">
+      <div class="card">
+        <div class="row" style="justify-content:space-between;margin-bottom:10px">
+          <h2 style="margin:0">현재 재고</h2>
+          <input id="stockSearch" placeholder="상품 검색">
+        </div>
+        <div class="table-wrap" id="stockTable"></div>
+        <div class="muted" style="margin-top:8px">품절 예상일은 최근 14일 평균 판매량 기준입니다. 쿠팡 창고는 쿠팡 판매량만으로 따로 계산합니다.</div>
+      </div>
+      <div class="card">
+        <h3>재고 현황 올리기 (이카운트 재고현황 등)</h3>
+        <div class="row" style="margin-bottom:10px">
+          <label class="field">보관 위치<select id="skLoc"></select></label>
+        </div>
+        <div class="note" style="margin-bottom:10px">
+          품목코드·재고수량이 있는 재고 엑셀을 그대로 올리세요. 파일 날짜(맨 위 제목 줄) 기준으로 이 위치의 재고를 파일 수량으로 맞추고,
+          그 뒤의 판매·입출고만 더하고 뺍니다. 등록된 상품의 코드와 같으면 자동으로 연결됩니다.
+        </div>
+        <div class="drop" id="skDrop">
+          재고 엑셀을 끌어다 놓거나 <b>클릭</b>해서 고르세요
+          <input type="file" id="skFile" accept=".xlsx,.xls,.csv" hidden>
+        </div>
+        <div id="skResult" style="margin-top:12px"></div>
+      </div>
+      <div class="card">
+        <h3>입고 · 이동 · 조정 등록</h3>
+        <div class="row">
+          <label class="field">유형
+            <select id="mvType">
+              <option value="입고">입고 (들어옴)</option>
+              <option value="이동">이동 (예: 본사 → 쿠팡 납품)</option>
+              <option value="조정">조정 (실사 차이, 파손 등 ±)</option>
+            </select>
+          </label>
+          <label class="field">날짜<input type="date" id="mvDate"></label>
+          <label class="field">상품<select id="mvSku"></select></label>
+          <label class="field" id="mvFromWrap">보낸 곳<select id="mvFrom"></select></label>
+          <label class="field"><span id="mvToLabel">위치</span><select id="mvTo"></select></label>
+          <label class="field">수량<input type="number" id="mvQty" step="1"></label>
+          <label class="field">메모<input id="mvMemo" placeholder="선택"></label>
+          <button class="primary" id="mvSave">등록</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3>최근 재고 기록</h3>
+        <div class="table-wrap" id="mvList" style="max-height:360px"></div>
+      </div>
+    </section>
+
+    <!-- 설정 -->
+    <section class="page" id="page-settings">
+      <div class="card">
+        <h2>상품 · 원가 · 초기 재고</h2>
+        <div class="row" style="margin-bottom:12px">
+          <button id="tplProducts">상품 양식 내려받기</button>
+          <button id="exportProducts">현재 상품 목록 내려받기</button>
+          <button id="tplStandard">공동구매 통합 양식 내려받기</button>
+        </div>
+        <div class="note" style="margin-bottom:12px">
+          상품 양식에 SKU코드·상품명·옵션·원가·쿠팡공급가·안전재고·초기재고를 채워 올리세요.
+          SKU코드가 같으면 덮어씁니다. 초기재고 칸을 비우면 기존 재고는 그대로 둡니다.
+        </div>
+        <div class="drop" id="prodDrop">
+          상품 엑셀을 끌어다 놓거나 <b>클릭</b>해서 고르세요
+          <input type="file" id="prodFile" accept=".xlsx,.xls,.csv" hidden>
+        </div>
+        <div id="prodPreview" style="margin-top:12px"></div>
+        <h3 style="margin-top:16px">등록된 상품</h3>
+        <div class="table-wrap" id="prodList" style="max-height:360px"></div>
+      </div>
+      <div class="card">
+        <h2>채널</h2>
+        <div class="muted" style="margin-bottom:8px">수수료율과 비용은 이익 계산에 바로 반영됩니다. 채널 그룹은 대시보드에서 묶어 보는 단위입니다.</div>
+        <div class="table-wrap" id="chList"></div>
+        <div class="row" style="margin-top:10px"><button class="primary" id="chSave">채널 설정 저장</button></div>
+        <h3 style="margin-top:16px">채널 추가</h3>
+        <div class="row">
+          <label class="field">채널명<input id="chNewName" placeholder="예: 로와인터내셔널"></label>
+          <label class="field">그룹<select id="chNewGroup"></select></label>
+          <label class="field">파일 형식<select id="chNewParser" style="max-width:240px"></select></label>
+          <button id="chAdd">추가</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>보관 위치</h2>
+        <div class="table-wrap" id="locList"></div>
+        <div class="row" style="margin-top:10px">
+          <input id="locName" placeholder="새 위치 이름">
+          <button id="locAdd">추가</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast"></div>
+  <div id="loading"><div>처리 중…</div></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script>
+/**
+ * 채널별 원본 엑셀 읽기.
+ * 각 파서는 "필드 → 후보 열 이름" 목록을 가지고, 파일의 머리행에서 가장 잘 맞는 열을 찾습니다.
+ * 열 이름이 달라서 못 찾으면 화면에서 직접 고르게 하고, 그 선택은 설정에 저장됩니다.
+ */
+const FIELD_LABELS = {
+  date: '날짜', orderId: '주문번호', name: '상품명', option: '옵션',
+  qty: '수량', amount: '금액(합계)', unitPrice: '판매단가', status: '주문상태', claim: '클레임상태', returnQty: '반품수량',
+  itemId: '상품ID(SKU ID)', inbound: '입고수량', stock: '현재재고'
+};
+
+// 채널 상품 식별 키: ID가 있으면 "이름 / 옵션 #ID", 없으면 "이름 / 옵션". baseKey 는 ID 없는 예전 연결과 호환용
+function itemKeys(name, option, id) {
+  const baseKey = rawKeyOf(name, option);
+  return { baseKey, rawKey: id ? baseKey + ' #' + id : baseKey };
+}
+
+const PARSERS = {
+  naver: {
+    label: '네이버 스마트스토어 (주문조회/발주발송 엑셀)',
+    mode: 'upsert',
+    fields: {
+      orderId: ['상품주문번호', '주문번호'],
+      date: ['결제일', '주문일시', '발주확인일', '주문일'],
+      name: ['상품명'],
+      option: ['옵션정보', '옵션'],
+      qty: ['수량'],
+      amount: ['최종 상품별 총 주문금액', '상품별 총 주문금액', '총 주문금액', '결제금액'],
+      unitPrice: ['상품가격', '판매가'],
+      status: ['주문상태'],
+      claim: ['클레임상태', '클레임 상태']
+    },
+    required: ['date', 'name', 'qty']
+  },
+  esm: {
+    label: 'G마켓·옥션 (ESM PLUS 주문 엑셀)',
+    mode: 'upsert',
+    fields: {
+      orderId: ['주문번호', '장바구니번호'],
+      date: ['결제일', '주문일자', '주문일', '결제완료일'],
+      name: ['상품명'],
+      option: ['옵션', '주문옵션', '옵션정보'],
+      qty: ['수량', '주문수량'],
+      amount: ['판매금액', '결제금액', '주문금액', '판매가'],
+      unitPrice: ['판매단가'],
+      status: ['주문상태', '진행상태'],
+      claim: ['클레임상태', '클레임']
+    },
+    required: ['date', 'name', 'qty']
+  },
+  st11: {
+    label: '11번가 (셀러오피스 주문 엑셀)',
+    mode: 'upsert',
+    fields: {
+      orderId: ['주문번호'],
+      date: ['결제일시', '주문일시', '결제일', '주문일'],
+      name: ['상품명'],
+      option: ['옵션', '옵션명', '주문옵션'],
+      qty: ['수량', '주문수량'],
+      amount: ['주문금액', '결제금액', '판매금액'],
+      unitPrice: ['판매가', '판매단가'],
+      status: ['주문상태'],
+      claim: ['클레임상태']
+    },
+    required: ['date', 'name', 'qty']
+  },
+  lotteon: {
+    label: '롯데온 (주문 엑셀)',
+    mode: 'upsert',
+    fields: {
+      orderId: ['주문번호'],
+      date: ['주문일시', '결제일시', '주문일'],
+      name: ['상품명'],
+      option: ['단품명', '옵션', '옵션명'],
+      qty: ['수량', '주문수량'],
+      amount: ['결제금액', '판매금액', '주문금액'],
+      unitPrice: ['판매가', '판매단가'],
+      status: ['주문상태', '처리상태'],
+      claim: ['클레임상태']
+    },
+    required: ['date', 'name', 'qty']
+  },
+  ssg: {
+    label: 'SSG (주문 엑셀)',
+    mode: 'upsert',
+    fields: {
+      orderId: ['주문번호'],
+      date: ['주문일', '주문일시', '결제일'],
+      name: ['상품명'],
+      option: ['단품명', '옵션', '옵션명'],
+      qty: ['수량', '주문수량'],
+      amount: ['주문금액', '결제금액', '판매금액'],
+      unitPrice: ['판매가', '판매단가'],
+      status: ['주문상태', '처리상태'],
+      claim: ['클레임상태']
+    },
+    required: ['date', 'name', 'qty']
+  },
+  cafe24: {
+    label: '카페24 (주문 엑셀)',
+    mode: 'upsert',
+    fields: {
+      orderId: ['품목별 주문번호', '주문번호'],
+      date: ['결제일시(입금확인일)', '결제일시', '주문일시', '주문일'],
+      name: ['주문상품명', '상품명'],
+      option: ['상품옵션', '옵션', '주문상품명(옵션포함)'],
+      qty: ['수량', '주문수량'],
+      amount: ['상품구매금액', '총 결제금액', '결제금액'],
+      unitPrice: ['판매가', '상품판매가'],
+      status: ['주문상태', '주문 상태'],
+      claim: ['취소/교환/반품', 'CS상태']
+    },
+    required: ['date', 'name', 'qty']
+  },
+  imweb: {
+    label: '아임웹 (주문 엑셀)',
+    mode: 'upsert',
+    fields: {
+      orderId: ['품목주문번호', '주문번호'],
+      date: ['주문일', '결제일', '주문일시'],
+      name: ['상품명'],
+      option: ['옵션', '옵션명'],
+      qty: ['구매수량', '수량'],
+      amount: ['최종 결제금액', '결제금액', '판매금액', '상품금액'],
+      unitPrice: ['판매가'],
+      status: ['주문상태', '품목주문상태'],
+      claim: ['클레임상태']
+    },
+    required: ['date', 'name', 'qty']
+  },
+  coupangRocket: {
+    label: '쿠팡 로켓배송 (서플라이어 허브 판매·재고 데이터)',
+    mode: 'replace',
+    fields: {
+      date: ['날짜', '일자', '판매일', '기준일'],
+      itemId: ['SKU ID', 'SKUID', 'SKU_ID'],
+      name: ['SKU 명', 'SKU명', '상품명', '노출상품명'],
+      option: ['옵션명', '옵션'],
+      qty: ['순판매수량', '판매수량', '출고수량', '판매량', '수량'],
+      amount: ['순매출', '매출', '판매금액', '매출액'],
+      unitPrice: ['매입원가', '공급가'],
+      returnQty: ['반품수량'],
+      inbound: ['입고수량'],
+      stock: ['현재재고수량', '현재재고', '재고수량']
+    },
+    required: ['date', 'name', 'qty']
+  },
+  ecount: {
+    label: '이카운트 판매현황 (거래처별 판매 엑셀)',
+    mode: 'replace',
+    yearFromTitle: true,   // 날짜가 "05/26-8" 처럼 월/일만 있어 맨 위 "2026/01/01 ~ 2026/09/25" 에서 연도를 읽음
+    otherSales: '기타매출',  // 품목 없이 금액만 있는 줄(회계매출 등)은 이 이름의 매출 줄로
+    fields: {
+      date: ['일자-No.', '일자-No', '일자'],
+      itemId: ['품목코드'],
+      name: ['품목명[규격]', '품목명'],
+      qty: ['수량'],
+      unitPrice: ['단가'],
+      amount: ['판매', '합계', '공급가액', '금액']
+    },
+    required: ['date', 'name', 'qty']
+  },
+  standard: {
+    label: '통합 양식 (공동구매 등)',
+    mode: 'replace',
+    fields: {
+      date: ['날짜', '판매일'],
+      name: ['상품명', 'SKU코드'],
+      option: ['옵션'],
+      qty: ['수량', '판매수량'],
+      amount: ['판매금액', '금액', '매출'],
+      returnQty: ['반품수량'],
+      unitPrice: ['판매단가', '단가']
+    },
+    required: ['date', 'name', 'qty']
+  }
+};
+
+// 주문상태 판정: 취소는 제외, 반품/환불은 반품으로
+const CANCEL_RE = /취소/;
+const RETURN_RE = /반품|환불/;
+
+const norm = s => String(s == null ? '' : s).replace(/\s+/g, '').toLowerCase();
+
+function toNumber(v) {
+  if (typeof v === 'number') return v;
+  const n = Number(String(v == null ? '' : v).replace(/[^0-9.\-]/g, ''));
+  return isFinite(n) ? n : 0;
+}
+
+function pad2(n) { return String(n).padStart(2, '0'); }
+function ymd(d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+
+function toDate(v) {
+  if (v instanceof Date && !isNaN(v)) return ymd(v);
+  if (typeof v === 'number' && v > 30000 && v < 80000) {
+    // 엑셀 날짜 일련번호
+    const d = new Date(Math.round((v - 25569) * 86400000));
+    return d.getUTCFullYear() + '-' + pad2(d.getUTCMonth() + 1) + '-' + pad2(d.getUTCDate());
+  }
+  const s = String(v == null ? '' : v).trim();
+  let m = s.match(/(\d{4})\s*[-./년]\s*(\d{1,2})\s*[-./월]\s*(\d{1,2})/);
+  if (m) return m[1] + '-' + pad2(m[2]) + '-' + pad2(m[3]);
+  m = s.match(/^(\d{4})(\d{2})(\d{2})/);
+  if (m) return m[1] + '-' + m[2] + '-' + m[3];
+  return '';
+}
+
+/** 이카운트 거래처별 파일 제목 "회사명 : 우리회사 / 거래처명 / 2026/01/01 ~ ..." 에서 거래처명 */
+function ecountCustomer(rows) {
+  const t = String(((rows[0] || [])[0]) || '');
+  const parts = t.replace(/^회사명\s*:\s*/, '').split(' / ').map(s => s.trim());
+  return parts.length >= 3 && !/\d{4}\s*[-./]\s*\d/.test(parts[1]) ? parts[1] : '';   // 둘째 칸이 기간이면 거래처 파일이 아님
+}
+
+/** 제목 줄의 "2026/01/01 ~ 2026/09/25" 기간을 찾습니다 */
+function titleRange(rows) {
+  const d = '(\\d{4})\\s*[-./]\\s*(\\d{1,2})\\s*[-./]\\s*(\\d{1,2})';
+  const re = new RegExp(d + '\\s*~\\s*' + d);
+  for (const row of rows) for (const c of row) {
+    const m = String(c).match(re);
+    if (m) return { y1: +m[1], m1: +m[2], y2: +m[4] };
+  }
+  return null;
+}
+
+/** "05/26-8" 처럼 월/일만 있는 날짜 → 기간의 연도를 붙임 (연도가 넘어가는 기간이면 시작 월보다 작은 달은 다음 해) */
+function monthDay(v, range) {
+  if (!range) return '';
+  const m = String(v == null ? '' : v).trim().match(/^(\d{1,2})\/(\d{1,2})(?:-\d+)?$/);
+  if (!m) return '';
+  const mon = +m[1];
+  const year = range.y1 !== range.y2 && mon < range.m1 ? range.y2 : range.y1;
+  return year + '-' + pad2(mon) + '-' + pad2(m[2]);
+}
+
+/** 파일 → 시트별 2차원 배열 */
+async function readWorkbook(file) {
+  const buf = await file.arrayBuffer();
+  let wb;
+  try {
+    wb = XLSX.read(buf, { type: 'array', cellDates: true });
+  } catch (e) {
+    if (/password|encrypt/i.test(e.message)) {
+      throw new Error('비밀번호가 걸린 엑셀입니다. 엑셀에서 열고 비밀번호를 해제해 다시 저장한 뒤 올려주세요.');
+    }
+    throw e;
+  }
+  return wb.SheetNames.map(n => ({
+    name: n,
+    rows: XLSX.utils.sheet_to_json(wb.Sheets[n], { header: 1, raw: true, defval: '' })
+  }));
+}
+
+/** 머리행과 열 위치 찾기. override = {field: '열이름'} */
+function detectColumns(sheets, parser, override) {
+  let best = null;
+  sheets.forEach(sh => {
+    for (let r = 0; r < Math.min(20, sh.rows.length); r++) {
+      const header = sh.rows[r].map(h => String(h).trim());
+      const nh = header.map(norm);
+      const cols = {};
+      let score = 0;
+      Object.entries(parser.fields).forEach(([f, aliases]) => {
+        let idx = -1;
+        if (override && override[f]) idx = nh.indexOf(norm(override[f]));
+        if (idx < 0) {
+          for (const a of aliases) { idx = nh.indexOf(norm(a)); if (idx >= 0) break; }
+        }
+        if (idx >= 0) { cols[f] = idx; score++; }
+      });
+      if (!best || score > best.score) best = { sheet: sh, headerRow: r, header, cols, score };
+    }
+  });
+  if (!best) return null;
+  best.missing = parser.required.filter(f => best.cols[f] === undefined);
+  return best;
+}
+
+/**
+ * 표 → 판매 행.
+ * 결과: { lines: [{key, date, orderId, rawName, rawOption, qty, amount, returnQty, returnAmount}],
+ *         cancelKeys, dates, skipped, warnings }
+ */
+function extractSales(det, parser, channelId) {
+  const { sheet, headerRow, cols } = det;
+  const get = (row, f) => cols[f] === undefined ? '' : row[cols[f]];
+  const byKey = new Map();
+  const cancelKeys = new Set();
+  const dates = new Set();
+  let skipped = 0, cancelled = 0;
+  const range = parser.yearFromTitle ? titleRange(sheet.rows.slice(0, headerRow + 1)) : null;
+  const inbound = new Map();   // 날짜+상품 → 입고수량 (센터 합계)
+  const stock = new Map();     // 날짜+상품 → 현재재고 (센터 합계)
+
+  for (let r = headerRow + 1; r < sheet.rows.length; r++) {
+    const row = sheet.rows[r];
+    let rawName = String(get(row, 'name')).trim();
+    const date = toDate(get(row, 'date')) || monthDay(get(row, 'date'), range);
+    let qty = toNumber(get(row, 'qty'));
+    const rawOption = String(get(row, 'option')).trim();
+    let itemId = String(get(row, 'itemId')).trim();
+    // 전표번호가 있는 줄("05/26-8")만. "2026/05/26 계" 같은 일자별 소계 줄은 제외
+    if (parser.otherSales && date && !rawName && !itemId && toNumber(get(row, 'amount')) &&
+        /^\d{1,2}\/\d{1,2}-\d+$/.test(String(get(row, 'date')).trim())) {
+      rawName = itemId = parser.otherSales; qty = qty || 1;
+    }
+    const { rawKey, baseKey } = itemKeys(rawName, rawOption, itemId);
+
+    // 재고 파일(쿠팡 로켓 등): 판매가 없는 줄도 입고·재고는 읽음
+    if (rawName && date && (cols.inbound !== undefined || cols.stock !== undefined)) {
+      const ik = date + '|' + rawKey;
+      const base = { date, rawName, rawOption, itemId, rawKey, baseKey, qty: 0 };
+      if (cols.inbound !== undefined) {
+        const n = toNumber(get(row, 'inbound'));
+        if (n) { const e = inbound.get(ik) || { ...base }; e.qty += n; inbound.set(ik, e); }
+      }
+      if (cols.stock !== undefined && String(get(row, 'stock')).trim() !== '') {
+        const e = stock.get(ik) || { ...base }; e.qty += toNumber(get(row, 'stock')); stock.set(ik, e);
+      }
+    }
+    if (!rawName || !date || !qty) { if (!date && row.some(c => c !== '')) skipped++; continue; }
+
+    const orderId = String(get(row, 'orderId')).trim();
+    let amount = cols.amount !== undefined ? toNumber(get(row, 'amount'))
+               : cols.unitPrice !== undefined ? toNumber(get(row, 'unitPrice')) * qty : 0;
+    const statusText = String(get(row, 'status')) + ' ' + String(get(row, 'claim'));
+
+    const key = parser.mode === 'upsert' && orderId
+      ? [channelId, orderId, rawName, rawOption].join('|')
+      : [channelId, date, rawKey].join('|');
+
+    if (CANCEL_RE.test(statusText)) {
+      if (parser.mode === 'upsert') cancelKeys.add(key);
+      cancelled++;
+      continue;
+    }
+    dates.add(date);
+    let returnQty = cols.returnQty !== undefined ? toNumber(get(row, 'returnQty')) : 0;
+    let returnAmount = returnQty && qty ? amount * returnQty / qty : 0;
+    let saleQty = qty;
+    if (RETURN_RE.test(statusText)) { returnQty = qty; returnAmount = amount; }
+    // 수량이 마이너스인 줄(이카운트 반품 등)은 반품으로
+    if (qty < 0) { returnQty = -qty; returnAmount = -amount; saleQty = 0; amount = 0; }
+
+    const cur = byKey.get(key);
+    if (cur) {
+      cur.qty += saleQty; cur.amount += amount; cur.returnQty += returnQty; cur.returnAmount += returnAmount;
+    } else {
+      byKey.set(key, { key, date, orderId, rawName, rawOption, itemId, rawKey, baseKey, qty: saleQty, amount, returnQty, returnAmount });
+    }
+  }
+  const warnings = [];
+  if (cols.amount === undefined && cols.unitPrice === undefined) warnings.push('금액 열을 찾지 못해 매출이 0으로 들어갑니다.');
+  // 현재재고: 상품마다 파일의 가장 마지막 날짜 값을 씁니다
+  const lastStock = new Map();
+  stock.forEach(s => { const c = lastStock.get(s.rawKey); if (!c || s.date > c.date) lastStock.set(s.rawKey, s); });
+  [...inbound.values(), ...lastStock.values()].forEach(x => dates.add(x.date));
+  return {
+    lines: [...byKey.values()], cancelKeys: [...cancelKeys], dates: [...dates].sort(), skipped, cancelled, warnings,
+    inbound: [...inbound.values()], stock: [...lastStock.values()]
+  };
+}
+
+const rawKeyOf = (name, option) => option ? name + ' / ' + option : name;
+
+// ─────────── 재고 현황 (이카운트 재고현황 등) ───────────
+const STOCK_PARSER = {
+  fields: {
+    itemId: ['품목코드', 'SKU코드', 'SKU ID', '상품코드'],
+    name: ['품목명[규격]', '품목명', '상품명', 'SKU 명'],
+    stock: ['재고수량', '현재재고수량', '현재재고', '재고', '수량']
+  },
+  required: ['stock']
+};
+
+/** 제목 줄의 날짜(예: "2026/09/27") — 없으면 오늘 */
+function titleDate(rows) {
+  for (const row of rows) for (const c of row) {
+    const m = String(c).match(/(\d{4})\s*[-./]\s*(\d{1,2})\s*[-./]\s*(\d{1,2})/);
+    if (m) return m[1] + '-' + pad2(m[2]) + '-' + pad2(m[3]);
+  }
+  return ymd(new Date());
+}
+
+/** 재고 현황 표 → [{itemId, name, rawKey, qty}] (합계 줄 제외) */
+function extractStock(det) {
+  const { sheet, headerRow, cols } = det;
+  const get = (row, f) => cols[f] === undefined ? '' : row[cols[f]];
+  const items = [];
+  for (let r = headerRow + 1; r < sheet.rows.length; r++) {
+    const row = sheet.rows[r];
+    const itemId = String(get(row, 'itemId')).trim(), name = String(get(row, 'name')).trim();
+    const raw = String(get(row, 'stock')).trim();
+    if ((!itemId && !name) || raw === '' || /^합계|^소계|^총계/.test(itemId || name)) continue;
+    const { rawKey } = itemKeys(name || itemId, '', itemId);
+    items.push({ itemId, name, rawKey, qty: toNumber(raw) });
+  }
+  return { items, date: titleDate(sheet.rows.slice(0, headerRow + 1)) };
+}
+
+// ─────────── 광고 보고서 ───────────
+const AD_FIELD_LABELS = {
+  date: '날짜', optionId: '옵션ID', name: '광고 상품명', option: '옵션',
+  amount: '광고비', adRevenue: '광고 전환매출', adOrders: '광고 주문수'
+};
+
+const AD_PARSERS = {
+  coupangAds: {
+    label: '쿠팡 광고 보고서 (광고센터 → 보고서 → 상품광고 보고서, 일별)',
+    fields: {
+      date: ['날짜', '일자', '기간', '집행일'],
+      optionId: ['광고집행 옵션ID', '광고집행옵션ID', '옵션ID', '옵션 ID'],
+      name: ['광고집행 상품명', '광고집행상품명', '광고 상품명', '상품명'],
+      option: ['광고집행 옵션명', '옵션명'],
+      amount: ['광고비', '집행 광고비', '광고비(원)', '총 광고비', '광고비(VAT포함)'],
+      adRevenue: ['총 전환매출액(14일)', '총전환매출액(14일)', '총 전환매출액(1일)', '총전환매출액(1일)', '총 전환매출액', '전환매출액', '광고전환매출'],
+      adOrders: ['총 주문수(14일)', '총주문수(14일)', '총 주문수(1일)', '총주문수(1일)', '총 주문수', '주문수']
+    },
+    required: ['date', 'name', 'amount']
+  },
+  standardAds: {
+    label: '통합 광고 양식 (날짜·상품명·옵션·광고비·광고매출·광고주문수)',
+    fields: {
+      date: ['날짜'],
+      name: ['상품명', 'SKU코드'],
+      option: ['옵션'],
+      amount: ['광고비'],
+      adRevenue: ['광고매출', '전환매출'],
+      adOrders: ['광고주문수', '주문수']
+    },
+    required: ['date', 'name', 'amount']
+  }
+};
+
+/** 광고 보고서 표 → 날짜·상품별 광고비. 합계 줄 등 날짜가 없는 줄은 건너뜁니다. */
+function extractAds(det) {
+  const { sheet, headerRow, cols } = det;
+  const get = (row, f) => cols[f] === undefined ? '' : row[cols[f]];
+  const byKey = new Map();
+  const dates = new Set();
+  let skipped = 0;
+  for (let r = headerRow + 1; r < sheet.rows.length; r++) {
+    const row = sheet.rows[r];
+    const date = toDate(get(row, 'date'));
+    const name = String(get(row, 'name')).trim();
+    const amount = toNumber(get(row, 'amount'));
+    const adRevenue = toNumber(get(row, 'adRevenue'));
+    const adOrders = toNumber(get(row, 'adOrders'));
+    if (!date || !name || (!amount && !adRevenue)) { if (row.some(c => c !== '')) skipped++; continue; }
+    const option = String(get(row, 'option')).trim();
+    const optionId = String(get(row, 'optionId')).trim();
+    const baseKey = rawKeyOf(name, option);
+    const rawKey = optionId ? baseKey + ' #' + optionId : baseKey;
+    dates.add(date);
+    const k = date + '|' + rawKey;
+    const cur = byKey.get(k);
+    if (cur) { cur.amount += amount; cur.adRevenue += adRevenue; cur.adOrders += adOrders; }
+    else byKey.set(k, { date, name, option, optionId, rawKey, baseKey, amount, adRevenue, adOrders });
+  }
+  return { lines: [...byKey.values()], dates: [...dates].sort(), skipped };
+}
+</script>
+
+  <script>
+// ═══════════════════════ 공통 ═══════════════════════
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const won = n => Math.round(n || 0).toLocaleString('ko-KR');
+const pct = n => isFinite(n) ? (n * 100).toFixed(1) + '%' : '-';
+const GROUPS = ['쿠팡', '네이버', '자사몰', '오픈마켓', '공동구매', '도매'];
+const IGNORE = '__IGNORE__';
+const SNAPSHOT = '실재고(파일)';     // 파일의 현재재고: 이 날짜 기준 재고를 이 값으로 맞춤
+const INBOUND_FILE = '입고(파일)';   // 파일의 입고수량
+
+let PW = '';
+let BIZ = '';          // 현재 사업자 (법인/개인). 서버 호출마다 같이 보냅니다
+let BIZ_LIST = [];
+let DATA = null;
+const IDX = { prod: {}, ch: {}, loc: {}, map: {} };
+
+function safeGet(k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } }
+function safeSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+function sessGet(k) { try { return sessionStorage.getItem(k) || ''; } catch (e) { return ''; } }
+function sessSet(k, v) { try { sessionStorage.setItem(k, v); } catch (e) {} }
+
+function toast(msg, err) {
+  const t = $('#toast');
+  t.textContent = msg; t.className = err ? 'err' : ''; t.style.display = 'block';
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => { t.style.display = 'none'; }, err ? 6000 : 3000);
+}
+function busy(on) { $('#loading').style.display = on ? 'flex' : 'none'; }
+
+// Cloudflare 등 구글 밖에 올린 화면이면 window.API_URL(Apps Script 웹앱 주소)로 요청을 보냅니다
+const API_URL = window.API_URL || '';
+function call(fn, ...args) {
+  if (API_URL) {
+    return fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ fn, args: [{ pw: PW, biz: BIZ }, ...args] }) })
+      .then(r => r.json(), () => { throw new Error('서버에 연결하지 못했습니다. 인터넷 연결을 확인해주세요.'); })
+      .then(d => {
+        if (d.ok) return d.result;
+        if (/AUTH/.test(d.error)) showLogin('비밀번호가 맞지 않습니다.');
+        throw new Error(d.error);
+      });
+  }
+  return new Promise((resolve, reject) => {
+    google.script.run
+      .withSuccessHandler(resolve)
+      .withFailureHandler(e => {
+        const msg = (e && e.message) || String(e);
+        if (/AUTH/.test(msg)) { showLogin('비밀번호가 맞지 않습니다.'); }
+        reject(new Error(msg));
+      })[fn]({ pw: PW, biz: BIZ }, ...args);
+  });
+}
+
+async function run(fn) {
+  busy(true);
+  try { return await fn(); }
+  catch (e) { if (!/AUTH/.test(e.message)) toast(e.message, true); }
+  finally { busy(false); }
+}
+
+// 날짜
+const today = () => ymd(new Date());
+function addDays(s, n) { const d = new Date(s + 'T00:00:00'); d.setDate(d.getDate() + n); return ymd(d); }
+function daysBetween(a, b) { return Math.round((new Date(b + 'T00:00:00') - new Date(a + 'T00:00:00')) / 86400000); }
+function dateList(from, to) { const out = []; for (let d = from; d <= to; d = addDays(d, 1)) out.push(d); return out; }
+
+const PERIODS = [
+  ['today', '오늘'], ['yesterday', '어제'], ['7d', '최근 7일'], ['30d', '최근 30일'],
+  ['month', '이번 달'], ['lastMonth', '지난 달'], ['custom', '직접 선택']
+];
+function periodRange(p, fromEl, toEl) {
+  const t = today();
+  if (p === 'today') return [t, t];
+  if (p === 'yesterday') { const y = addDays(t, -1); return [y, y]; }
+  if (p === '7d') return [addDays(t, -6), t];
+  if (p === '30d') return [addDays(t, -29), t];
+  if (p === 'month') return [t.slice(0, 8) + '01', t];
+  if (p === 'lastMonth') {
+    const first = t.slice(0, 8) + '01', end = addDays(first, -1);
+    return [end.slice(0, 8) + '01', end];
+  }
+  return [fromEl.value || t, toEl.value || t];
+}
+
+function chips(el, items, current, onPick) {
+  el.innerHTML = items.map(([v, l]) => `<button data-v="${v}" class="${v === current ? 'on' : ''}">${l}</button>`).join('');
+  el.onclick = e => {
+    const b = e.target.closest('button'); if (!b) return;
+    el.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+    onPick(b.dataset.v);
+  };
+}
+
+function table(cols, rows, opts = {}) {
+  if (!rows.length) return `<div class="muted">${opts.empty || '데이터가 없습니다.'}</div>`;
+  const head = cols.map(c => `<th class="${c.n ? 'n' : ''}">${c.label}</th>`).join('');
+  const body = rows.map(r => `<tr class="${r._cls || ''}">` + cols.map(c => {
+    const v = c.html ? c.html(r) : esc(c.fmt ? c.fmt(r[c.key], r) : r[c.key]);
+    return `<td class="${c.n ? 'n' : ''}">${v}</td>`;
+  }).join('') + '</tr>').join('');
+  return `<table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+}
+
+function downloadXlsx(filename, sheetName, aoa) {
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa), sheetName);
+  XLSX.writeFile(wb, filename);
+}
+
+function prodLabel(sku) {
+  const p = IDX.prod[sku];
+  if (!p) return sku || '(미연결)';
+  return p.name + (p.option ? ' · ' + p.option : '');
+}
+function groupColor(g) {
+  const i = GROUPS.indexOf(g);
+  return i >= 0 ? `var(--s${i + 1})` : 'var(--muted)';
+}
+function cssVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
+// ═══════════════════════ 로그인 · 데이터 ═══════════════════════
+function showLogin(err) {
+  $('#login').style.display = 'flex';
+  $('#loginErr').textContent = err || '';
+  $('#pw').focus();
+}
+
+$('#loginForm').onsubmit = async e => {
+  e.preventDefault();
+  PW = $('#pw').value;
+  busy(true);
+  try {
+    setupBiz(await call('api_login'));
+    sessSet('pw', PW);
+    $('#login').style.display = 'none';
+    await reload();
+  } catch (err) {
+    if (!/AUTH/.test(err.message)) $('#loginErr').textContent = err.message;
+  } finally { busy(false); }
+};
+
+async function reload() {
+  DATA = await call('api_getData');
+  IDX.prod = {}; DATA.products.forEach(p => { IDX.prod[p.sku] = p; });
+  IDX.ch = {}; DATA.channels.forEach(c => { IDX.ch[c.id] = c; });
+  IDX.loc = {}; DATA.locations.forEach(l => { IDX.loc[l.id] = l; });
+  IDX.map = {}; DATA.mappings.forEach(m => { IDX.map[m.channel + '|' + m.rawKey] = m.sku; });
+  // 상품코드(#ID)로도 찾을 수 있게: 같은 코드인데 이름이 조금 다른 줄도 한 번 연결로 인식
+  IDX.byId = {}; DATA.mappings.forEach(m => { const id = (m.rawKey.match(/ #(.+)$/) || [])[1]; if (id) IDX.byId[m.channel + '|' + id] = m.sku; });
+  renderAll();
+}
+
+function renderAll() {
+  renderDash(); renderUploadPage(); renderProfit(); renderStock(); renderSettings();
+}
+
+// 사업자 선택: 바꾸면 그 사업자의 데이터만 다시 불러옵니다
+const bizTag = () => `<span class="biz-tag ${BIZ_LIST.indexOf(BIZ) > 0 ? 'alt' : ''}">${esc(BIZ)}</span>`;
+function setupBiz(res) {
+  BIZ_LIST = (res && res.businesses) || ['법인'];
+  const saved = safeGet('biz');
+  BIZ = BIZ_LIST.includes(saved) ? saved : BIZ_LIST[0];
+  $('#bizSel').innerHTML = BIZ_LIST.map(b => `<option ${b === BIZ ? 'selected' : ''}>${esc(b)}</option>`).join('');
+  $('#bizSel').classList.toggle('alt', BIZ_LIST.indexOf(BIZ) > 0);
+}
+$('#bizSel').onchange = () => {
+  BIZ = $('#bizSel').value; safeSet('biz', BIZ);
+  $('#bizSel').classList.toggle('alt', BIZ_LIST.indexOf(BIZ) > 0);
+  UP = null; AD = null; PROD_UP = null; SK = null; BK = null;
+  $('#upResult').innerHTML = ''; $('#adResult').innerHTML = ''; $('#prodPreview').innerHTML = ''; $('#skResult').innerHTML = ''; $('#bkResult').innerHTML = '';
+  run(async () => { await reload(); toast(BIZ + ' 데이터를 불러왔습니다.'); });
+};
+
+// 탭
+$('#tabs').onclick = e => {
+  const b = e.target.closest('button'); if (!b) return;
+  $$('#tabs button').forEach(x => x.classList.toggle('on', x === b));
+  $$('section.page').forEach(s => s.classList.toggle('on', s.id === 'page-' + b.dataset.page));
+  if (b.dataset.page === 'dash' && DATA) renderDash();
+};
+
+// ═══════════════════════ 이익 계산 ═══════════════════════
+// ─── 채널별 수수료 변경 이력 · 판매가 규칙 ───
+// 수수료변경 예: "2026-08-01 22"  → 8/1부터 22% (그 전은 기본 수수료율)
+// 판매가규칙 예: "C05BD-* 49000; C05BD-* 39900 2026-08-01; DRY-01 198000 15%"
+//   → *는 앞부분이 같은 상품 모두, 날짜는 그날부터, 15%는 그 상품만 채널 수수료 대신 적용
+const RULE_CACHE = {};
+function parseFeeChanges(text) {
+  const k = 'f|' + text; if (RULE_CACHE[k]) return RULE_CACHE[k];
+  const list = [...String(text || '').matchAll(/(\d{4}-\d{2}-\d{2})\s*[= ]\s*([\d.]+)/g)].map(m => ({ from: m[1], rate: +m[2] }));
+  return (RULE_CACHE[k] = list.sort((a, b) => a.from.localeCompare(b.from)));
+}
+function parsePriceRules(text) {
+  const k = 'p|' + text; if (RULE_CACHE[k]) return RULE_CACHE[k];
+  const list = String(text || '').split(/[;\n]/).map(s => s.trim().split(/\s+/)).filter(p => p.length >= 2 && +p[1] > 0)
+    .map(p => {
+      const rest = p.slice(2), d = rest.find(t => /^\d{4}-\d{2}-\d{2}$/.test(t)), f = rest.find(t => /^[\d.]+%$/.test(t));
+      return { pat: p[0], price: +p[1], from: d || '0000-00-00', fee: f ? parseFloat(f) : null };
+    });
+  return (RULE_CACHE[k] = list);
+}
+function channelRule(ch, sku, date) {
+  let best = null;
+  parsePriceRules(ch.priceRules).forEach(r => {
+    const hit = r.pat.endsWith('*') ? String(sku).startsWith(r.pat.slice(0, -1)) : r.pat === sku;
+    if (hit && r.from <= date && (!best || r.from >= best.from)) best = r;
+  });
+  return best;
+}
+function channelFee(ch, date, sku) {
+  const r = sku ? channelRule(ch, sku, date) : null;
+  if (r && r.fee != null) return r.fee;
+  let rate = ch.feeRate || 0;
+  parseFeeChanges(ch.feeChanges).forEach(c => { if (c.from <= date) rate = c.rate; });
+  return rate;
+}
+function channelPrice(ch, sku, date) {
+  const r = channelRule(ch, sku, date);
+  return r ? r.price : 0;
+}
+
+/** 기간 안의 판매를 행 단위 손익으로 계산. 배송비·광고비는 날짜+채널 안에서 순매출 비율로 배분 */
+function profitLines(from, to) {
+  const lines = [];
+  const byDC = {};
+  DATA.sales.forEach(s => {
+    if (s.date < from || s.date > to) return;
+    const ch = IDX.ch[s.channel] || { feeRate: 0, shipPerOrder: 0, returnCost: 0, group: '기타' };
+    const p = IDX.prod[s.sku] || { cost: 0, supplyPrice: 0 };
+    const supply = ch.useSupplyPrice === 'Y';
+    // 공급가 기준 채널: 상품의 쿠팡공급가, 없으면 파일의 매입원가(금액)
+    // 판매가 규칙: 파일에 금액이 없는 줄(위탁판매 출고 등)은 채널에 정한 판매가로 매출을 잡음
+    const rulePrice = !s.amount && !s.returnAmount ? channelPrice(ch, s.sku, s.date) : 0;
+    const rev = supply && p.supplyPrice ? s.qty * p.supplyPrice : rulePrice ? s.qty * rulePrice : s.amount;
+    const ret = supply && p.supplyPrice ? s.returnQty * p.supplyPrice : rulePrice ? s.returnQty * rulePrice : s.returnAmount;
+    const net = rev - ret;
+    const l = {
+      date: s.date, channel: s.channel, group: ch.group || '기타', sku: s.sku, location: s.location,
+      qty: s.qty, returnQty: s.returnQty, rev, ret, net,
+      cogs: (s.qty - s.returnQty) * p.cost,
+      fee: net * channelFee(ch, s.date, s.sku) / 100,
+      retCost: s.returnQty * (ch.returnCost || 0),
+      ship: 0, ad: 0, adRev: 0
+    };
+    lines.push(l);
+    (byDC[s.date + '|' + s.channel] = byDC[s.date + '|' + s.channel] || []).push(l);
+  });
+  const spread = (k, field, total) => {
+    const ls = byDC[k];
+    const sum = ls.reduce((a, l) => a + Math.max(l.net, 0), 0);
+    ls.forEach(l => { l[field] += total * (sum ? Math.max(l.net, 0) / sum : 1 / ls.length); });
+  };
+  Object.keys(byDC).forEach(k => {
+    const ch = IDX.ch[k.split('|')[1]] || {};
+    spread(k, 'ship', (DATA.orderCounts[k] || 0) * (ch.shipPerOrder || 0));
+  });
+  const emptyLine = (date, channel, sku) => {
+    const ch = IDX.ch[channel] || {};
+    const l = { date, channel, group: ch.group || '기타', sku, qty: 0, returnQty: 0, rev: 0, ret: 0, net: 0, cogs: 0, fee: 0, retCost: 0, ship: 0, ad: 0, adRev: 0 };
+    lines.push(l);
+    return l;
+  };
+  const inRange = DATA.ads.filter(a => a.date >= from && a.date <= to);
+  // 1) 상품별 광고비(광고 보고서): 해당 상품 줄에 바로 넣음. 그날 판매가 없으면 광고비만 있는 줄을 만듦
+  inRange.filter(a => a.sku).forEach(a => {
+    const k = a.date + '|' + a.channel;
+    const l = (byDC[k] || []).find(x => x.sku === a.sku) || emptyLine(a.date, a.channel, a.sku);
+    l.ad += a.amount; l.adRev += a.adRevenue || 0;
+  });
+  // 2) 상품 구분 없는 광고비: 그날 채널 매출 비율로 나눔
+  inRange.filter(a => !a.sku).forEach(a => {
+    const k = a.date + '|' + a.channel;
+    if (byDC[k]) { spread(k, 'ad', a.amount); spread(k, 'adRev', a.adRevenue || 0); }
+    else { const l = emptyLine(a.date, a.channel, ''); l.ad = a.amount; l.adRev = a.adRevenue || 0; }
+  });
+  lines.forEach(l => { l.profit = l.net - l.cogs - l.fee - l.ship - l.retCost - l.ad; });
+  return lines;
+}
+
+const SUM_FIELDS = ['qty', 'returnQty', 'rev', 'ret', 'net', 'cogs', 'fee', 'ship', 'retCost', 'ad', 'adRev', 'profit'];
+const roas = r => r.ad ? Math.round(r.adRev / r.ad * 100) + '%' : '-';
+function sumBy(lines, keyFn) {
+  const m = new Map();
+  lines.forEach(l => {
+    const k = keyFn(l);
+    let a = m.get(k);
+    if (!a) { a = { key: k }; SUM_FIELDS.forEach(f => a[f] = 0); m.set(k, a); }
+    SUM_FIELDS.forEach(f => a[f] += l[f]);
+  });
+  return [...m.values()];
+}
+function totalOf(lines) { return sumBy(lines, () => 'all')[0] || Object.fromEntries(SUM_FIELDS.map(f => [f, 0])); }
+
+// ═══════════════════════ 재고 계산 ═══════════════════════
+function stockState() {
+  const qty = {};   // sku -> loc -> 수량
+  const add = (sku, loc, n) => { (qty[sku] = qty[sku] || {})[loc] = (qty[sku][loc] || 0) + n; };
+  // 상품·위치별 가장 최근 실재고(파일). 그 날짜까지의 기록은 이미 반영된 것으로 보고, 이후 기록만 더합니다
+  const snap = {};
+  DATA.moves.forEach(m => {
+    if (m.type !== SNAPSHOT) return;
+    const k = m.sku + '|' + m.location, c = snap[k];
+    if (!c || m.date > c.date || (m.date === c.date && (m.createdAt || '') > (c.createdAt || ''))) snap[k] = m;
+  });
+  const after = (sku, loc, date) => { const s = snap[sku + '|' + loc]; return !s || date > s.date; };
+  Object.values(snap).forEach(s => add(s.sku, s.location, s.qty));
+  DATA.moves.forEach(m => { if (m.type !== SNAPSHOT && after(m.sku, m.location, m.date)) add(m.sku, m.location, m.qty); });
+  DATA.sales.forEach(s => { if (s.sku && s.sku !== IGNORE && after(s.sku, s.location, s.date)) add(s.sku, s.location, s.returnQty - s.qty); });
+
+  // 최근 14일 판매 속도 (마지막 판매 데이터 날짜 기준)
+  const lastDate = DATA.sales.reduce((a, s) => s.date > a ? s.date : a, '') || today();
+  const from = addDays(lastDate, -13);
+  const sold = {};  // sku -> loc -> 14일 판매량
+  DATA.sales.forEach(s => {
+    if (s.date < from || s.date > lastDate) return;
+    (sold[s.sku] = sold[s.sku] || {})[s.location] = ((sold[s.sku] || {})[s.location] || 0) + s.qty - s.returnQty;
+  });
+
+  const rows = DATA.products.map(p => {
+    const byLoc = qty[p.sku] || {};
+    const total = Object.values(byLoc).reduce((a, b) => a + b, 0);
+    const perDay = Object.values(sold[p.sku] || {}).reduce((a, b) => a + b, 0) / 14;
+    const locDays = {};
+    DATA.locations.forEach(l => {
+      const v = ((sold[p.sku] || {})[l.id] || 0) / 14;
+      locDays[l.id] = v > 0 ? Math.max(0, (byLoc[l.id] || 0) / v) : null;
+    });
+    // 위치별로 따로 소진되므로, 판매가 있는 위치 중 가장 먼저 떨어지는 날 기준
+    const daysList = Object.values(locDays).filter(v => v !== null);
+    const daysLeft = daysList.length ? Math.min(...daysList) : null;
+    let status = 'ok';
+    if (total <= 0) status = 'out';
+    else if (total <= p.safetyStock || (daysLeft !== null && daysLeft <= 7)) status = 'low';
+    const soldOutDate = status === 'out' ? '이미 품절' : daysLeft !== null ? addDays(lastDate, Math.floor(daysLeft)) : '';
+    return { ...p, byLoc, total, perDay, daysLeft, locDays, status, soldOutDate };
+  });
+  return { rows, lastDate };
+}
+
+function statusBadge(r) {
+  if (r.status === 'out') return '<span class="badge bad">⛔ 품절</span>';
+  if (r.status === 'low') return '<span class="badge warn">⚠ 부족</span>';
+  return '<span class="badge good">✓ 여유</span>';
+}
+
+// ═══════════════════════ 대시보드 ═══════════════════════
+let dashP = safeGet('dashP') || '7d';
+let dailyChart = null;
+chips($('#dashPeriod'), PERIODS, dashP, v => { dashP = v; safeSet('dashP', v); renderDash(); });
+$('#dashFrom').onchange = $('#dashTo').onchange = () => renderDash();
+
+function renderDash() {
+  if (!DATA) return;
+  $('#dashCustom').style.display = dashP === 'custom' ? 'flex' : 'none';
+  const [from, to] = periodRange(dashP, $('#dashFrom'), $('#dashTo'));
+  const len = daysBetween(from, to) + 1;
+  const pFrom = addDays(from, -len), pTo = addDays(from, -1);
+  const cur = profitLines(from, to), prev = profitLines(pFrom, pTo);
+  const T = totalOf(cur), P = totalOf(prev);
+  const delta = (a, b) => {
+    if (!b) return '<span class="sub">이전 기간 데이터 없음</span>';
+    const d = (a - b) / Math.abs(b);
+    return `<span class="${d >= 0 ? 'up' : 'down'}">${d >= 0 ? '▲' : '▼'} ${Math.abs(d * 100).toFixed(1)}%</span> <span class="sub">이전 ${len}일 대비</span>`;
+  };
+  const margin = T.net ? T.profit / T.net : NaN, pMargin = P.net ? P.profit / P.net : NaN;
+  $('#dashKpis').innerHTML = [
+    ['순매출', won(T.net) + '원', delta(T.net, P.net)],
+    ['순이익', won(T.profit) + '원', delta(T.profit, P.profit)],
+    ['이익률', pct(margin), isFinite(pMargin) ? `<span class="sub">이전 ${pct(pMargin)}</span>` : ''],
+    ['판매수량', won(T.qty - T.returnQty) + '개', delta(T.qty - T.returnQty, P.qty - P.returnQty)]
+  ].map(([l, v, s]) => `<div class="kpi"><div class="label">${l}</div><div class="value">${v}</div><div class="sub">${s}</div></div>`).join('');
+
+  // 일별 차트
+  const days = dateList(from, to);
+  const byDG = {};
+  cur.forEach(l => { const k = l.date + '|' + l.group; byDG[k] = (byDG[k] || 0) + l.net; });
+  const groups = [...GROUPS, ...new Set(cur.map(l => l.group).filter(g => !GROUPS.includes(g)))];
+  const hasData = cur.some(l => l.net);
+  $('#dailyEmpty').style.display = hasData ? 'none' : 'block';
+  const datasets = groups.map((g, i) => ({
+    label: g,
+    data: days.map(d => Math.round(byDG[d + '|' + g] || 0)),
+    backgroundColor: i < GROUPS.length ? cssVar('--s' + (i + 1)) : cssVar('--muted'),
+    borderColor: cssVar('--surface'), borderWidth: { top: 2, bottom: 0, left: 0, right: 0 },
+    borderRadius: 3, borderSkipped: false, maxBarThickness: 36
+  })).filter(ds => ds.data.some(v => v));
+  if (dailyChart) dailyChart.destroy();
+  if (window.Chart) {
+    const ink2 = cssVar('--ink-2'), grid = cssVar('--grid');
+    dailyChart = new Chart($('#dailyChart'), {
+      type: 'bar',
+      data: { labels: days.map(d => d.slice(5).replace('-', '/')), datasets },
+      options: {
+        maintainAspectRatio: false, animation: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { position: 'top', align: 'start', labels: { color: ink2, boxWidth: 10, boxHeight: 10, useBorderRadius: true, borderRadius: 2 } },
+          tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ${won(c.raw)}원`, footer: items => '합계: ' + won(items.reduce((a, i) => a + i.raw, 0)) + '원' } }
+        },
+        scales: {
+          x: { stacked: true, grid: { display: false }, ticks: { color: ink2, maxRotation: 0, autoSkip: true } },
+          y: { stacked: true, grid: { color: grid }, border: { display: false }, ticks: { color: ink2, callback: v => v >= 10000 ? (v / 10000).toLocaleString('ko-KR') + '만' : v } }
+        }
+      }
+    });
+  }
+
+  // 채널 그룹
+  const byGroup = sumBy(cur, l => l.group).sort((a, b) => GROUPS.indexOf(a.key) - GROUPS.indexOf(b.key));
+  const maxNet = Math.max(1, ...byGroup.map(g => g.net));
+  $('#dashGroups').innerHTML = table([
+    { label: '그룹', html: r => `<span class="dot" style="background:${groupColor(r.key)}"></span> ${esc(r.key)}` },
+    { label: '순매출', n: 1, html: r => `<div style="display:flex;align-items:center;gap:8px;justify-content:flex-end"><div style="width:60px;height:6px;background:var(--surface-2);border-radius:3px"><div style="width:${Math.max(0, r.net / maxNet * 100)}%;height:6px;border-radius:3px;background:${groupColor(r.key)}"></div></div>${won(r.net)}</div>` },
+    { label: '순이익', n: 1, fmt: v => won(v), key: 'profit' },
+    { label: '이익률', n: 1, html: r => pct(r.net ? r.profit / r.net : NaN) },
+    { label: '수량', n: 1, html: r => won(r.qty - r.returnQty) }
+  ], byGroup, { empty: '이 기간에 판매가 없습니다.' });
+
+  // 재고 경고
+  const st = stockState();
+  const alerts = st.rows.filter(r => r.status !== 'ok').sort((a, b) => (a.daysLeft ?? -1) - (b.daysLeft ?? -1));
+  $('#dashAlerts').innerHTML = table([
+    { label: '상태', html: statusBadge },
+    { label: '상품', html: r => esc(prodLabel(r.sku)) },
+    { label: '재고', n: 1, html: r => won(r.total) },
+    { label: '품절 예상', html: r => r.soldOutDate ? esc(r.soldOutDate) : '-' }
+  ], alerts.slice(0, 10), { empty: '부족한 상품이 없습니다. ✓' });
+
+  // TOP 10
+  const top = sumBy(cur.filter(l => l.sku), l => l.sku).sort((a, b) => b.net - a.net).slice(0, 10);
+  $('#dashTop').innerHTML = table([
+    { label: '#', html: r => top.indexOf(r) + 1 },
+    { label: '상품', html: r => esc(prodLabel(r.key)) },
+    { label: '수량', n: 1, html: r => won(r.qty - r.returnQty) },
+    { label: '순매출', n: 1, html: r => won(r.net) },
+    { label: '순이익', n: 1, html: r => won(r.profit) },
+    { label: '이익률', n: 1, html: r => pct(r.net ? r.profit / r.net : NaN) }
+  ], top, { empty: '이 기간에 판매가 없습니다.' });
+}
+
+// ═══════════════════════ 판매 업로드 ═══════════════════════
+let UP = null;   // 현재 파일 상태
+
+$('#whoInput').value = safeGet('who');
+$('#whoLabel').textContent = safeGet('who');
+$('#whoInput').onchange = () => { safeSet('who', $('#whoInput').value.trim()); $('#whoLabel').textContent = $('#whoInput').value.trim(); };
+$('#upChannel').onchange = () => { safeSet('upChannel', $('#upChannel').value); upHint(); if (UP) processUpload(); };
+
+function upHint() {
+  const ch = IDX.ch[$('#upChannel').value];
+  if (!ch) return;
+  const p = PARSERS[ch.parser];
+  const hints = {
+    naver: '스마트스토어센터 → 주문/배송 → 주문통합검색 또는 발주/발송관리에서 엑셀 다운로드. 다운로드 비밀번호가 걸려 있으면 해제 후 저장해서 올리세요.',
+    esm: 'ESM PLUS → 주문관리 → 전체주문조회에서 엑셀 다운로드. G마켓·옥션은 채널을 각각 선택해서 올리세요.',
+    st11: '셀러오피스 → 주문관리에서 엑셀 다운로드.',
+    lotteon: '롯데온 스토어센터 → 주문관리에서 엑셀 다운로드.',
+    ssg: 'SSG 파트너오피스 → 주문관리에서 엑셀 다운로드.',
+    cafe24: '카페24 관리자 → 주문관리 → 주문 엑셀 다운로드.',
+    imweb: '아임웹 관리자 → 주문 → 엑셀 다운로드.',
+    coupangRocket: '서플라이어 허브의 일별 판매(순판매) 데이터. 매출은 상품의 <b>쿠팡공급가 × 수량</b>으로 계산하고 쿠팡 로켓 창고 재고에서 뺍니다. 같은 날짜를 다시 올리면 그 날짜는 새 파일로 바뀝니다.',
+    standard: '설정 탭의 <b>공동구매 통합 양식</b>을 채워 올리세요. 같은 날짜를 다시 올리면 그 날짜는 새 파일로 바뀝니다.',
+    ecount: '이카운트 → 판매현황(거래처별) 엑셀을 그대로 올리세요. 수량이 마이너스인 줄은 반품, 금액 없는 줄(교환·사은품)은 재고만 빠집니다. 같은 날짜를 다시 올리면 그 날짜는 새 파일로 바뀝니다.'
+  };
+  $('#upHint').innerHTML = `<b>${esc(p ? p.label : ch.parser)}</b><br>${hints[ch.parser] || ''}` +
+    (p && p.mode === 'upsert' ? '<br><span class="muted">주문번호 기준으로 합치므로 같은 파일이나 기간이 겹치는 파일을 다시 올려도 중복되지 않습니다. 취소 주문은 빠지고, 반품/환불은 반품으로 잡힙니다.</span>' : '');
+}
+
+const upDrop = $('#upDrop'), upFile = $('#upFile');
+upDrop.onclick = () => upFile.click();
+upDrop.ondragover = e => { e.preventDefault(); upDrop.classList.add('over'); };
+upDrop.ondragleave = () => upDrop.classList.remove('over');
+upDrop.ondrop = e => { e.preventDefault(); upDrop.classList.remove('over'); if (e.dataTransfer.files[0]) loadUpload(e.dataTransfer.files[0]); };
+upFile.onchange = () => { if (upFile.files[0]) loadUpload(upFile.files[0]); upFile.value = ''; };
+
+async function loadUpload(file) {
+  try {
+    busy(true);
+    UP = { file, sheets: await readWorkbook(file), picks: {} };
+    processUpload();
+  } catch (e) { toast('파일을 읽지 못했습니다: ' + e.message, true); UP = null; $('#upResult').innerHTML = ''; }
+  finally { busy(false); }
+}
+
+function colOverride(parserId) {
+  try { return JSON.parse(DATA.settings['cols:' + parserId] || '{}'); } catch (e) { return {}; }
+}
+
+function suggestSku(chId, name, option, id) {
+  if (id) { const byId = DATA.products.find(p => norm(p.sku) === norm(id)); if (byId) return byId.sku; }
+  const rk = rawKeyOf(name, option);
+  const other = DATA.mappings.find(m => m.rawKey === rk && m.sku);
+  if (other) return other.sku;
+  const n = norm(name), no = norm(name + option);
+  const hit = DATA.products.find(p => norm(p.sku) === n) ||
+    DATA.products.find(p => norm(p.name + p.option) === no) ||
+    DATA.products.find(p => norm(p.name + p.option) === n) ||
+    (!option ? DATA.products.find(p => norm(p.name) === n && !p.option) : null);
+  if (hit) return hit.sku;
+  // 채널 상품명에 우리 상품명과 옵션 글자가 모두 들어 있으면 후보로 (후보가 하나일 때만)
+  const cands = DATA.products.filter(p => no.includes(norm(p.name)) &&
+    p.option.split(/[\/,·|]/).map(norm).filter(Boolean).every(t => no.includes(t)));
+  return cands.length === 1 ? cands[0].sku : '';
+}
+
+function processUpload() {
+  const chId = $('#upChannel').value, ch = IDX.ch[chId];
+  const parser = PARSERS[ch.parser];
+  const override = { ...colOverride(ch.parser), ...UP.picks };
+  const det = detectColumns(UP.sheets, parser, override);
+  if (!det) { $('#upResult').innerHTML = '<div class="card">표를 찾지 못했습니다.</div>'; return; }
+  UP.det = det; UP.parser = parser; UP.channel = chId;
+  const colPicker = Object.keys(parser.fields).map(f => {
+    const opts = ['<option value="">(없음)</option>'].concat(det.header.map((h, i) =>
+      h ? `<option value="${esc(h)}" ${det.cols[f] === i ? 'selected' : ''}>${esc(h)}</option>` : '')).join('');
+    const req = parser.required.includes(f);
+    return `<label class="field">${FIELD_LABELS[f]}${req ? ' *' : ''}<select data-f="${f}">${opts}</select></label>`;
+  }).join('');
+
+  if (det.missing.length) {
+    $('#upResult').innerHTML = `<div class="card">
+      <h3>열을 직접 골라주세요</h3>
+      <div class="note" style="margin-bottom:10px">이 파일에서 <b>${det.missing.map(f => FIELD_LABELS[f]).join(', ')}</b> 열을 찾지 못했습니다.
+      맞는 열을 골라주세요. 한 번 저장하면 다음부터 자동으로 인식합니다.</div>
+      <div class="row" id="colPick">${colPicker}</div>
+      <div class="row" style="margin-top:10px"><button class="primary" id="colSave">이 열 설정 저장하고 계속</button></div>
+    </div>`;
+    bindColPicker(ch.parser);
+    return;
+  }
+
+  const ex = extractSales(det, parser, chId);
+  UP.ex = ex;
+  // 상품 연결 (판매 줄 + 입고·재고 줄). ID가 있으면 ID 포함 키, 없으면 이름 키로 찾음
+  const unmapped = new Map();
+  const resolve = x => {
+    const m = IDX.map[chId + '|' + x.rawKey] || (x.itemId && IDX.byId[chId + '|' + x.itemId]) || IDX.map[chId + '|' + x.baseKey];
+    x.sku = m === CHANNEL_AD ? '' : (m || '');   // 광고 보고서용 연결은 판매에 쓰지 않음
+    if (!x.sku) {
+      const uk = x.itemId ? '#' + x.itemId : x.rawKey;   // 상품코드가 있으면 코드당 한 번만 물어봄
+      const u = unmapped.get(uk) || { rawKey: x.rawKey, rawKeys: new Set(), qty: 0, suggest: suggestSku(chId, x.rawName, x.rawOption, x.itemId) };
+      u.rawKeys.add(x.rawKey); u.qty += x.qty || 0; unmapped.set(uk, u);
+    }
+  };
+  ex.lines.forEach(resolve);
+  ex.inbound.forEach(x => { const q = x.qty; x.qty = 0; resolve(x); x.qty = q; });
+  ex.stock.forEach(x => { const q = x.qty; x.qty = 0; resolve(x); x.qty = q; });
+  UP.unmapped = [...unmapped.values()].sort((a, b) => b.qty - a.qty);
+
+  const tot = ex.lines.reduce((a, l) => ({ qty: a.qty + l.qty, amount: a.amount + l.amount, rq: a.rq + l.returnQty }), { qty: 0, amount: 0, rq: 0 });
+  const stockNote = ex.stock.length || ex.inbound.length
+    ? `<div class="note" style="margin-bottom:8px">📦 이 파일의 재고 정보도 반영합니다 —
+        현재재고 <b>${ex.stock.length}</b>개 상품 (${esc(ex.stock.reduce((a, s) => s.date > a ? s.date : a, ''))} 기준, 합계 ${won(ex.stock.reduce((a, s) => a + s.qty, 0))}개) ·
+        입고 ${won(ex.inbound.reduce((a, s) => a + s.qty, 0))}개.
+        재고는 이 날짜의 파일 값으로 맞추고, 그 뒤의 판매·입출고만 더하고 뺍니다.</div>` : '';
+  const skuOpts = sel => `<option value="">— 상품 선택 —</option><option value="${IGNORE}" ${sel === IGNORE ? 'selected' : ''}>(집계 제외: 사은품·배송비 등)</option>` +
+    DATA.products.map(p => `<option value="${esc(p.sku)}" ${p.sku === sel ? 'selected' : ''}>${esc(p.sku)} — ${esc(p.name)}${p.option ? ' · ' + esc(p.option) : ''}</option>`).join('');
+
+  $('#upResult').innerHTML = `<div class="card">
+    <h3>${bizTag()}${esc(UP.file.name)} — 확인 후 반영하세요</h3>
+    <div class="grid kpis">
+      <div class="kpi"><div class="label">날짜</div><div class="value" style="font-size:16px">${ex.dates.length ? esc(ex.dates[0]) + (ex.dates.length > 1 ? ' ~ ' + esc(ex.dates[ex.dates.length - 1]) : '') : '-'}</div><div class="sub">${ex.dates.length}일치</div></div>
+      <div class="kpi"><div class="label">주문 줄</div><div class="value">${won(ex.lines.length)}</div><div class="sub">취소 ${ex.cancelled} · 건너뜀 ${ex.skipped}</div></div>
+      <div class="kpi"><div class="label">수량</div><div class="value">${won(tot.qty)}</div><div class="sub">반품 ${won(tot.rq)}</div></div>
+      <div class="kpi"><div class="label">파일 금액 합계</div><div class="value">${won(tot.amount)}</div><div class="sub">${IDX.ch[chId].useSupplyPrice === 'Y' ? '참고용 (공급가로 계산)' : ''}</div></div>
+    </div>
+    ${ex.warnings.map(w => `<div class="note" style="margin-bottom:8px">⚠ ${esc(w)}</div>`).join('')}
+    ${stockNote}
+    ${UP.unmapped.length ? `<h3>처음 보는 상품 ${UP.unmapped.length}개 — 우리 상품(SKU)과 연결해주세요</h3>
+      <div class="muted" style="margin-bottom:6px">한 번 연결하면 다음부터 자동으로 인식합니다. 비슷한 이름이 있으면 미리 골라뒀습니다.</div>
+      ${DATA.products.length ? '' : '<div class="note" style="margin-bottom:8px">⚠ 등록된 상품이 없습니다. 설정 탭에서 상품을 먼저 올려주세요.</div>'}
+      <div class="table-wrap"><table><thead><tr><th>채널 상품명 / 옵션</th><th class="n">수량</th><th>우리 상품</th></tr></thead><tbody>
+      ${UP.unmapped.map((u, i) => `<tr><td style="white-space:normal">${esc(u.rawKey)}</td><td class="n">${won(u.qty)}</td><td><select data-i="${i}" class="mapSel" style="max-width:360px">${skuOpts(u.suggest)}</select></td></tr>`).join('')}
+      </tbody></table></div>` : '<div class="note">✓ 모든 상품이 연결되어 있습니다.</div>'}
+    <details style="margin-top:12px"><summary class="muted">인식된 열 보기 / 바꾸기</summary>
+      <div class="row" id="colPick" style="margin-top:8px">${colPicker}</div>
+      <div class="row" style="margin-top:8px"><button id="colSave">열 설정 저장하고 다시 읽기</button></div>
+    </details>
+    <div class="row" style="margin-top:14px">
+      <button class="primary" id="upSave">판매 반영하기</button>
+      <button id="upCancel">취소</button>
+    </div>
+  </div>`;
+  bindColPicker(ch.parser);
+  $('#upCancel').onclick = () => { UP = null; $('#upResult').innerHTML = ''; };
+  $('#upSave').onclick = saveUpload;
+}
+
+function bindColPicker(parserId) {
+  const btn = $('#colSave'); if (!btn) return;
+  btn.onclick = () => run(async () => {
+    const o = {};
+    $$('#colPick select').forEach(s => { if (s.value) o[s.dataset.f] = s.value; });
+    await call('api_saveSetting', 'cols:' + parserId, JSON.stringify(o));
+    DATA.settings['cols:' + parserId] = JSON.stringify(o);
+    UP.picks = {};
+    processUpload();
+  });
+}
+
+async function saveUpload() {
+  const chId = UP.channel;
+  const newMaps = [];
+  const pick = {};
+  let missingN = 0;
+  $$('.mapSel').forEach(s => { const u = UP.unmapped[+s.dataset.i]; if (!s.value) missingN++; u.rawKeys.forEach(k => { pick[k] = s.value; }); });
+  const missing = { length: missingN };
+  if (missing.length) { toast(`연결 안 된 상품이 ${missing.length}개 있습니다. 상품을 고르거나 '집계 제외'를 선택하세요.`, true); return; }
+  Object.entries(pick).forEach(([rawKey, sku]) => newMaps.push({ channel: chId, rawKey, sku }));
+  const who = $('#whoInput').value.trim();
+  if (!who) { toast('올리는 사람 이름을 적어주세요.', true); $('#whoInput').focus(); return; }
+
+  const rows = UP.ex.lines.map(l => ({ ...l, sku: l.sku || pick[l.rawKey] }))
+    .filter(l => l.sku && l.sku !== IGNORE)
+    .map(l => ({ key: l.key, date: l.date, orderId: l.orderId, sku: l.sku, rawName: l.rawName, rawOption: l.rawOption,
+                 qty: l.qty, amount: Math.round(l.amount), returnQty: l.returnQty, returnAmount: Math.round(l.returnAmount) }));
+  // 집계 제외로 바뀐 기존 주문은 지웁니다
+  const ignoredKeys = UP.ex.lines.filter(l => (l.sku || pick[l.rawKey]) === IGNORE).map(l => l.key);
+  // 파일의 입고·현재재고 → 재고 기록 (상품별로 합침)
+  const stockMoves = [];
+  const addMove = (list, type) => {
+    const m = new Map();
+    list.forEach(x => {
+      const sku = x.sku || pick[x.rawKey];
+      if (!sku || sku === IGNORE) return;
+      const k = x.date + '|' + sku;
+      m.set(k, { date: x.date, sku, qty: (m.get(k) ? m.get(k).qty : 0) + x.qty, type });
+    });
+    stockMoves.push(...m.values());
+  };
+  addMove(UP.ex.inbound, INBOUND_FILE);
+  addMove(UP.ex.stock, SNAPSHOT);
+
+  await run(async () => {
+    if (newMaps.length) await call('api_saveMappings', newMaps);
+    const res = await call('api_saveSales', {
+      channel: chId, mode: UP.parser.mode, dates: UP.ex.dates, rows,
+      cancelKeys: UP.ex.cancelKeys.concat(ignoredKeys), file: UP.file.name, who, stockMoves
+    });
+    toast(`반영 완료 — 추가 ${res.added}, 변경 ${res.updated}, 삭제 ${res.removed}` + (res.stockMoves ? `, 재고 기록 ${res.stockMoves}` : ''));
+    UP = null; $('#upResult').innerHTML = '';
+    await reload();
+  });
+}
+
+// ─── 이카운트 거래처 파일 일괄 업로드 ───
+const REV_ONLY = '__REV__';   // 상품이 아닌 매출 항목(배송비·월 합계 등): 재고·원가 없이 매출만
+const isExcludedCustomer = name => /^(\(주\)쿠팡|쿠팡\(주\)|쿠팡주식회사)$/.test(String(name).replace(/\s/g, ''));
+let BK = null;
+const bkDrop = $('#bkDrop'), bkFile = $('#bkFile');
+bkDrop.onclick = () => bkFile.click();
+bkDrop.ondragover = e => { e.preventDefault(); bkDrop.classList.add('over'); };
+bkDrop.ondragleave = () => bkDrop.classList.remove('over');
+bkDrop.ondrop = e => { e.preventDefault(); bkDrop.classList.remove('over'); if (e.dataTransfer.files.length) loadBulk([...e.dataTransfer.files]); };
+bkFile.onchange = () => { if (bkFile.files.length) loadBulk([...bkFile.files]); bkFile.value = ''; };
+
+async function loadBulk(files) {
+  busy(true);
+  try {
+    const list = [];
+    for (const [n, file] of files.entries()) {
+      const sheets = await readWorkbook(file);
+      const cust = ecountCustomer(sheets[0].rows);
+      const det = detectColumns(sheets, PARSERS.ecount, colOverride('ecount'));
+      if (!cust) { list.push({ file, cust: '', error: '제목에서 거래처명을 찾지 못함' }); continue; }
+      if (isExcludedCustomer(cust)) { list.push({ file, cust, skip: true }); continue; }
+      if (!det || det.missing.length) { list.push({ file, cust, error: '품목코드·수량 열을 찾지 못함' }); continue; }
+      const ch = DATA.channels.find(c => norm(c.name) === norm(cust));
+      const chId = ch ? ch.id : 'ec' + Date.now().toString(36) + n;
+      list.push({ file, cust, ch, chId, isNew: !ch, ex: extractSales(det, PARSERS.ecount, chId) });
+    }
+    // 같은 거래처 파일이 두 번 있으면 뒤의 것만
+    const seen = new Set();
+    for (let i = list.length - 1; i >= 0; i--) {
+      const x = list[i]; if (!x.ex) continue;
+      if (seen.has(norm(x.cust))) { x.skip = true; x.dup = true; x.ex = null; } else seen.add(norm(x.cust));
+    }
+    BK = { list };
+    resolveBulk();
+    renderBulk();
+  } catch (e) { toast('파일을 읽지 못했습니다: ' + e.message, true); BK = null; $('#bkResult').innerHTML = ''; }
+  finally { busy(false); }
+}
+
+function resolveBulk() {
+  // 같은 품목코드는 어느 채널에서 연결했든 같은 상품으로 봅니다
+  const byIdAny = {};
+  DATA.mappings.forEach(m => { const id = (m.rawKey.match(/ #(.+)$/) || [])[1]; if (id && m.sku && m.sku !== CHANNEL_AD) byIdAny[id] = m.sku; });
+  const unmapped = new Map();
+  BK.list.filter(x => x.ex).forEach(x => x.ex.lines.forEach(l => {
+    l.sku = IDX.map[x.chId + '|' + l.rawKey] || (l.itemId && IDX.byId[x.chId + '|' + l.itemId]) ||
+      (l.itemId && byIdAny[l.itemId]) || (l.itemId && (DATA.products.find(p => norm(p.sku) === norm(l.itemId)) || {}).sku) || '';
+    if (l.sku === CHANNEL_AD) l.sku = '';
+    if (!l.sku) {
+      const uk = l.itemId ? '#' + l.itemId : l.rawKey;
+      const revLike = /배송비|택배비|운임|항공료|외$|기타매출/.test(l.rawName.replace(/\s/g, ''));
+      const u = unmapped.get(uk) || { uk, itemId: l.itemId, name: l.rawName, qty: 0, amount: 0, suggest: suggestSku(x.chId, l.rawName, '', l.itemId) || (revLike ? REV_ONLY : '') };
+      u.qty += l.qty; u.amount += l.amount; unmapped.set(uk, u);
+    }
+  }));
+  BK.unmapped = [...unmapped.values()].sort((a, b) => b.amount - a.amount);
+}
+
+function renderBulk() {
+  const ok = BK.list.filter(x => x.ex);
+  const tot = ok.reduce((a, x) => { x.ex.lines.forEach(l => { a.qty += l.qty - l.returnQty; a.amt += l.amount - l.returnAmount; }); return a; }, { qty: 0, amt: 0 });
+  const skuOpts = sel => `<option value="">— 선택 —</option>
+    <option value="${REV_ONLY}" ${sel === REV_ONLY ? 'selected' : ''}>(매출만 · 상품 아님: 배송비·월 합계 등)</option>
+    <option value="${IGNORE}" ${sel === IGNORE ? 'selected' : ''}>(제외)</option>` +
+    DATA.products.map(p => `<option value="${esc(p.sku)}" ${p.sku === sel ? 'selected' : ''}>${esc(p.sku)} — ${esc(p.name)}${p.option ? ' · ' + esc(p.option) : ''}</option>`).join('');
+  $('#bkResult').innerHTML = `
+    <h3>${bizTag()}파일 ${BK.list.length}개 — 확인 후 반영하세요</h3>
+    <div class="note" style="margin-bottom:8px">반영할 거래처 <b>${ok.length}</b>곳 · 순수량 ${won(tot.qty)} · 순매출 ${won(tot.amt)}원</div>
+    <div class="table-wrap" style="max-height:320px"><table><thead><tr><th>거래처</th><th>채널</th><th class="n">줄</th><th class="n">기간</th></tr></thead><tbody>
+    ${BK.list.map(x => `<tr><td>${esc(x.cust || x.file.name)}</td><td>${x.error ? `<span class="badge bad">${esc(x.error)}</span>` : x.skip ? `<span class="badge warn">${x.dup ? '중복 파일 제외' : '제외 (쿠팡)'}</span>` : x.isNew ? '<span class="badge good">새로 만듦 · 도매</span>' : esc(x.ch.name)}</td>
+      <td class="n">${x.ex ? won(x.ex.lines.length) : '-'}</td><td class="n">${x.ex && x.ex.dates.length ? esc(x.ex.dates[0]) + ' ~ ' + esc(x.ex.dates[x.ex.dates.length - 1]) : '-'}</td></tr>`).join('')}
+    </tbody></table></div>
+    ${BK.unmapped.length ? `<h3 style="margin-top:12px">처음 보는 품목 ${BK.unmapped.length}개 — 연결해주세요</h3>
+      <div class="muted" style="margin-bottom:6px">배송비·택배비나 "○○ 외" 같은 월 합계 줄은 '매출만'으로 두면 재고·원가 없이 매출로만 잡힙니다. 한 번 고르면 다음부터 자동입니다.</div>
+      <div class="table-wrap"><table><thead><tr><th>품목코드</th><th>품목명</th><th class="n">수량</th><th class="n">금액</th><th>우리 상품</th></tr></thead><tbody>
+      ${BK.unmapped.map((u, i) => `<tr><td>${esc(u.itemId)}</td><td style="white-space:normal">${esc(u.name)}</td><td class="n">${won(u.qty)}</td><td class="n">${won(u.amount)}</td><td><select data-i="${i}" class="bkSel" style="max-width:320px">${skuOpts(u.suggest)}</select></td></tr>`).join('')}
+      </tbody></table></div>` : '<div class="note">✓ 모든 품목이 연결되어 있습니다.</div>'}
+    <div class="row" style="margin-top:12px"><button class="primary" id="bkSave">${ok.length}개 거래처 판매 반영하기</button><button id="bkCancel">취소</button></div>`;
+  $('#bkCancel').onclick = () => { BK = null; $('#bkResult').innerHTML = ''; };
+  $('#bkSave').onclick = saveBulk;
+}
+
+async function saveBulk() {
+  const pick = {};
+  let missing = 0;
+  $$('.bkSel').forEach(s => { const u = BK.unmapped[+s.dataset.i]; if (!s.value) missing++; pick[u.uk] = s.value === REV_ONLY ? (u.itemId || u.name) : s.value; });
+  if (missing) return toast(`연결 안 된 품목이 ${missing}개 있습니다. 상품이나 '매출만' / '제외'를 골라주세요.`, true);
+  const ok = BK.list.filter(x => x.ex);
+  if (!ok.length) return toast('반영할 파일이 없습니다.', true);
+  const who = $('#whoInput').value.trim() || safeGet('who');
+  const newChannels = ok.filter(x => x.isNew).map(x => ({ id: x.chId, name: x.cust, group: '도매', parser: 'ecount',
+    feeRate: 0, shipPerOrder: 0, returnCost: 0, location: (DATA.locations[0] || {}).id || 'main', useSupplyPrice: 'N', active: 'Y' }));
+  const label = $('#loading div'), orig = label.textContent;
+  await run(async () => {
+    if (newChannels.length) { label.textContent = '새 거래처 채널 만드는 중…'; await call('api_saveChannels', DATA.channels.concat(newChannels)); }
+    const maps = [];
+    ok.forEach(x => x.ex.lines.forEach(l => {
+      if (l.sku) return;
+      l.sku = pick[l.itemId ? '#' + l.itemId : l.rawKey];
+      maps.push({ channel: x.chId, rawKey: l.rawKey, sku: l.sku });
+    }));
+    const uniq = [...new Map(maps.map(m => [m.channel + '|' + m.rawKey, m])).values()];
+    if (uniq.length) { label.textContent = '품목 연결 저장 중…'; await call('api_saveMappings', uniq); }
+    let n = 0, added = 0;
+    for (const x of ok) {
+      n++; label.textContent = `판매 반영 중… (${n}/${ok.length}) ${x.cust}`;
+      const rows = x.ex.lines.filter(l => l.sku && l.sku !== IGNORE).map(l => ({ key: l.key, date: l.date, orderId: '', sku: l.sku,
+        rawName: l.rawName, rawOption: '', qty: l.qty, amount: Math.round(l.amount), returnQty: l.returnQty, returnAmount: Math.round(l.returnAmount) }));
+      const res = await call('api_saveSales', { channel: x.chId, mode: 'replace', dates: x.ex.dates, rows, cancelKeys: [], file: x.file.name, who });
+      added += res.added;
+    }
+    toast(`${ok.length}개 거래처, 판매 ${won(added)}줄을 반영했습니다.`);
+    BK = null; $('#bkResult').innerHTML = '';
+    await reload();
+  });
+  label.textContent = orig;
+}
+
+function renderUploadPage() {
+  const sel = $('#upChannel');
+  const saved = sel.value || safeGet('upChannel');
+  sel.innerHTML = DATA.channels.filter(c => c.active !== 'N')
+    .map(c => `<option value="${esc(c.id)}">${esc(c.group)} · ${esc(c.name)}</option>`).join('');
+  if (saved && IDX.ch[saved]) sel.value = saved;
+  upHint();
+  $('#upHistory').innerHTML = table([
+    { label: '시각', html: r => esc(new Date(r.at).toLocaleString('ko-KR')) },
+    { label: '올린 사람', key: 'who' },
+    { label: '채널', html: r => esc((IDX.ch[r.channel] || {}).name || r.channel) },
+    { label: '파일', key: 'file' },
+    { label: '행', n: 1, key: 'rows' },
+    { label: '결과', key: 'memo' },
+    { label: '', html: r => `<button class="small" data-undo="${esc(r.id)}">되돌리기</button>` }
+  ], DATA.uploads.slice(0, 30), { empty: '아직 업로드한 파일이 없습니다.' });
+}
+$('#upHistory').onclick = e => {
+  const id = e.target.dataset && e.target.dataset.undo; if (!id) return;
+  if (!confirm('이 업로드로 들어간 판매 데이터를 지웁니다. (주문번호 기준 채널은 이후 업로드로 덮어쓴 줄도 함께 지워집니다) 계속할까요?')) return;
+  run(async () => { const n = await call('api_undoUpload', id); toast(`판매 ${n}줄을 지웠습니다.`); await reload(); });
+};
+
+// ═══════════════════════ 이익 분석 ═══════════════════════
+let profitP = safeGet('profitP') || 'month';
+let profitV = safeGet('profitV') || 'channel';
+chips($('#profitPeriod'), PERIODS, profitP, v => { profitP = v; safeSet('profitP', v); renderProfit(); });
+chips($('#profitView'), [['group', '채널 그룹별'], ['channel', '채널별'], ['product', '상품별'], ['day', '일별']], profitV,
+  v => { profitV = v; safeSet('profitV', v); renderProfit(); });
+$('#profitFrom').onchange = $('#profitTo').onchange = () => renderProfit();
+
+let PROFIT_ROWS = [];
+function renderProfit() {
+  if (!DATA) return;
+  $('#profitCustom').style.display = profitP === 'custom' ? 'flex' : 'none';
+  const [from, to] = periodRange(profitP, $('#profitFrom'), $('#profitTo'));
+  const lines = profitLines(from, to);
+  const keyFn = { group: l => l.group, channel: l => l.channel, product: l => l.sku || '(광고비만)', day: l => l.date }[profitV];
+  const nameFn = {
+    group: k => k, channel: k => (IDX.ch[k] || {}).name || k,
+    product: k => k === '(광고비만)' ? '상품 구분 없는 광고비' : prodLabel(k), day: k => k
+  }[profitV];
+  let rows = sumBy(lines, keyFn);
+  rows.forEach(r => { r.name = nameFn(r.key); r.margin = r.net ? r.profit / r.net : NaN; });
+  if (profitV === 'day') rows.sort((a, b) => b.key.localeCompare(a.key));
+  else if (profitV === 'group') rows.sort((a, b) => GROUPS.indexOf(a.key) - GROUPS.indexOf(b.key));
+  else rows.sort((a, b) => b.net - a.net);
+  const T = totalOf(lines); T.name = '합계'; T._cls = 'total'; T.margin = T.net ? T.profit / T.net : NaN;
+  PROFIT_ROWS = rows.concat(rows.length ? [T] : []);
+  const m = v => won(v);
+  const cols = [
+    { label: { group: '그룹', channel: '채널', product: '상품', day: '날짜' }[profitV], html: r => (profitV === 'group' && r.key ? `<span class="dot" style="background:${groupColor(r.key)}"></span> ` : '') + esc(r.name) },
+    { label: '수량', n: 1, html: r => won(r.qty - r.returnQty) },
+    { label: '매출', n: 1, key: 'rev', fmt: m },
+    { label: '반품', n: 1, key: 'ret', fmt: m },
+    { label: '순매출', n: 1, key: 'net', fmt: m },
+    { label: '원가', n: 1, key: 'cogs', fmt: m },
+    { label: '수수료', n: 1, key: 'fee', fmt: m },
+    { label: '배송비', n: 1, key: 'ship', fmt: m },
+    { label: '반품비', n: 1, key: 'retCost', fmt: m },
+    { label: '광고비', n: 1, key: 'ad', fmt: m },
+    { label: '광고매출', n: 1, key: 'adRev', fmt: m },
+    { label: 'ROAS', n: 1, html: roas },
+    { label: '순이익', n: 1, html: r => `<b class="${r.profit < 0 ? 'down' : ''}">${won(r.profit)}</b>` },
+    { label: '이익률', n: 1, html: r => pct(r.margin) }
+  ];
+  $('#profitTable').innerHTML = table(cols, PROFIT_ROWS, { empty: `${from} ~ ${to} 기간에 데이터가 없습니다.` });
+  PROFIT_ROWS._meta = { from, to };
+  renderAds();
+}
+
+$('#profitExport').onclick = () => {
+  if (!PROFIT_ROWS.length) return toast('내려받을 데이터가 없습니다.', true);
+  const head = ['구분', '수량', '매출', '반품', '순매출', '원가', '수수료', '배송비', '반품비', '광고비', '광고매출', 'ROAS(%)', '순이익', '이익률'];
+  const aoa = [head].concat(PROFIT_ROWS.map(r => [r.name, r.qty - r.returnQty, r.rev, r.ret, r.net, r.cogs, r.fee, r.ship, r.retCost, r.ad, r.adRev, r.ad ? Math.round(r.adRev / r.ad * 100) : '', r.profit, isFinite(r.margin) ? +(r.margin * 100).toFixed(1) : ''].map(v => typeof v === 'number' ? Math.round(v * 10) / 10 : v)));
+  const { from, to } = PROFIT_ROWS._meta;
+  downloadXlsx(`이익분석_${from}_${to}.xlsx`, '이익분석', aoa);
+};
+
+const defaultAdFormat = chId => (IDX.ch[chId] || {}).parser === 'coupangRocket' ? 'coupangAds' : 'standardAds';
+
+function renderAds() {
+  const chOpts = DATA.channels.map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');
+  $('#adChannel').innerHTML = chOpts;
+  const keepCh = $('#adUpChannel').value || safeGet('adUpChannel') || 'coupang';
+  const keepFmt = $('#adUpFormat').value;
+  $('#adUpChannel').innerHTML = chOpts;
+  if (IDX.ch[keepCh]) $('#adUpChannel').value = keepCh;
+  $('#adUpFormat').innerHTML = Object.entries(AD_PARSERS).map(([k, p]) => `<option value="${k}">${esc(p.label)}</option>`).join('');
+  $('#adUpFormat').value = keepFmt || defaultAdFormat($('#adUpChannel').value);
+  if (!$('#adDate').value) $('#adDate').value = addDays(today(), -1);
+
+  // 날짜·채널별 합계 (보고서로 올린 상품별 광고비는 합쳐서 표시)
+  const agg = new Map();
+  DATA.ads.forEach(a => {
+    const k = a.date + '|' + a.channel;
+    const g = agg.get(k) || { date: a.date, channel: a.channel, amount: 0, adRevenue: 0, n: 0, fromReport: false };
+    g.amount += a.amount; g.adRevenue += a.adRevenue || 0; g.n++; g.fromReport = g.fromReport || !!a.uploadId;
+    agg.set(k, g);
+  });
+  const list = [...agg.values()].sort((a, b) => b.date.localeCompare(a.date) || a.channel.localeCompare(b.channel)).slice(0, 60);
+  $('#adList').innerHTML = table([
+    { label: '날짜', key: 'date' },
+    { label: '채널', html: r => esc((IDX.ch[r.channel] || {}).name || r.channel) },
+    { label: '구분', html: r => r.fromReport ? `보고서 (${r.n}개 상품)` : '직접 입력' },
+    { label: '광고비', n: 1, html: r => won(r.amount) },
+    { label: '광고매출', n: 1, html: r => r.adRevenue ? won(r.adRevenue) : '-' },
+    { label: 'ROAS', n: 1, html: r => r.adRevenue && r.amount ? Math.round(r.adRevenue / r.amount * 100) + '%' : '-' }
+  ], list, { empty: '광고비 기록이 없습니다.' });
+}
+
+// ─── 광고 보고서 업로드 ───
+const CHANNEL_AD = '__CHANNEL__';   // 상품 구분 없이 채널 광고비로
+let AD = null;
+$('#adUpChannel').onchange = () => {
+  safeSet('adUpChannel', $('#adUpChannel').value);
+  $('#adUpFormat').value = defaultAdFormat($('#adUpChannel').value);
+  if (AD) processAdReport();
+};
+$('#adUpFormat').onchange = () => { if (AD) processAdReport(); };
+$('#tplAds').onclick = () => downloadXlsx('통합_광고양식.xlsx', '광고',
+  [['날짜', '상품명', '옵션', '광고비', '광고매출', '광고주문수'], [today(), '예시 티셔츠', '블랙 / M', 12000, 48000, 3]]);
+
+const adDrop = $('#adDrop'), adFile = $('#adFile');
+adDrop.onclick = () => adFile.click();
+adDrop.ondragover = e => { e.preventDefault(); adDrop.classList.add('over'); };
+adDrop.ondragleave = () => adDrop.classList.remove('over');
+adDrop.ondrop = e => { e.preventDefault(); adDrop.classList.remove('over'); if (e.dataTransfer.files[0]) loadAdReport(e.dataTransfer.files[0]); };
+adFile.onchange = () => { if (adFile.files[0]) loadAdReport(adFile.files[0]); adFile.value = ''; };
+
+async function loadAdReport(file) {
+  try {
+    busy(true);
+    AD = { file, sheets: await readWorkbook(file) };
+    processAdReport();
+  } catch (e) { toast('파일을 읽지 못했습니다: ' + e.message, true); AD = null; $('#adResult').innerHTML = ''; }
+  finally { busy(false); }
+}
+
+function processAdReport() {
+  const chId = $('#adUpChannel').value, fmt = $('#adUpFormat').value, parser = AD_PARSERS[fmt];
+  const det = detectColumns(AD.sheets, parser, colOverride('ad:' + fmt));
+  if (!det) { $('#adResult').innerHTML = '<div class="note">표를 찾지 못했습니다.</div>'; return; }
+  const colPicker = Object.keys(parser.fields).map(f => {
+    const opts = ['<option value="">(없음)</option>'].concat(det.header.map((h, i) =>
+      h ? `<option value="${esc(h)}" ${det.cols[f] === i ? 'selected' : ''}>${esc(h)}</option>` : '')).join('');
+    return `<label class="field">${AD_FIELD_LABELS[f]}${parser.required.includes(f) ? ' *' : ''}<select data-f="${f}">${opts}</select></label>`;
+  }).join('');
+  const pickerBlock = (open, btn) => `<details ${open ? 'open' : ''} style="margin-top:12px"><summary class="muted">인식된 열 보기 / 바꾸기</summary>
+    <div class="row" id="adColPick" style="margin-top:8px">${colPicker}</div>
+    <div class="row" style="margin-top:8px"><button id="adColSave">${btn}</button></div></details>`;
+
+  if (det.missing.length) {
+    $('#adResult').innerHTML = `<div class="note">이 파일에서 <b>${det.missing.map(f => AD_FIELD_LABELS[f]).join(', ')}</b> 열을 찾지 못했습니다.
+      맞는 열을 골라주세요. 한 번 저장하면 다음부터 자동으로 인식합니다.</div>` + pickerBlock(true, '이 열 설정 저장하고 계속');
+    bindAdColPicker(fmt);
+    return;
+  }
+
+  const ex = extractAds(det);
+  AD.ex = ex; AD.channel = chId;
+  const unmapped = new Map();
+  ex.lines.forEach(l => {
+    l.sku = IDX.map[chId + '|' + l.rawKey] || IDX.map[chId + '|' + l.baseKey] || '';
+    if (!l.sku) {
+      const u = unmapped.get(l.rawKey) || { rawKey: l.rawKey, amount: 0, suggest: suggestSku(chId, l.name, l.option) };
+      u.amount += l.amount; unmapped.set(l.rawKey, u);
+    }
+  });
+  AD.unmapped = [...unmapped.values()].sort((a, b) => b.amount - a.amount);
+
+  const T = ex.lines.reduce((a, l) => ({ amount: a.amount + l.amount, rev: a.rev + l.adRevenue, orders: a.orders + l.adOrders }), { amount: 0, rev: 0, orders: 0 });
+  const skuOpts = sel => `<option value="">— 상품 선택 —</option>
+    <option value="${CHANNEL_AD}" ${sel === CHANNEL_AD ? 'selected' : ''}>(상품 구분 없이 채널 광고비로)</option>
+    <option value="${IGNORE}" ${sel === IGNORE ? 'selected' : ''}>(제외)</option>` +
+    DATA.products.map(p => `<option value="${esc(p.sku)}" ${p.sku === sel ? 'selected' : ''}>${esc(p.sku)} — ${esc(p.name)}${p.option ? ' · ' + esc(p.option) : ''}</option>`).join('');
+  const range = ex.dates.length ? esc(ex.dates[0]) + (ex.dates.length > 1 ? ' ~ ' + esc(ex.dates[ex.dates.length - 1]) : '') : '-';
+
+  $('#adResult').innerHTML = `
+    <h3>${bizTag()}${esc(AD.file.name)} — 확인 후 반영하세요</h3>
+    <div class="grid kpis">
+      <div class="kpi"><div class="label">날짜</div><div class="value" style="font-size:16px">${range}</div><div class="sub">${ex.dates.length}일치 · 건너뜀 ${ex.skipped}줄</div></div>
+      <div class="kpi"><div class="label">광고비</div><div class="value">${won(T.amount)}</div><div class="sub">${ex.lines.length}줄</div></div>
+      <div class="kpi"><div class="label">광고 전환매출</div><div class="value">${won(T.rev)}</div><div class="sub">주문 ${won(T.orders)}건</div></div>
+      <div class="kpi"><div class="label">ROAS</div><div class="value">${T.amount ? Math.round(T.rev / T.amount * 100) + '%' : '-'}</div><div class="sub">전환매출 ÷ 광고비</div></div>
+    </div>
+    ${ex.dates.length ? `<div class="note" style="margin-bottom:8px">${esc((IDX.ch[chId] || {}).name || chId)}의 ${range} 광고비는 이 파일 내용으로 바뀝니다.</div>` : ''}
+    ${AD.unmapped.length ? `<h3>처음 보는 광고 상품 ${AD.unmapped.length}개 — 우리 상품(SKU)과 연결해주세요</h3>
+      <div class="muted" style="margin-bottom:6px">한 번 연결하면 다음부터 자동으로 인식합니다. 브랜드 광고처럼 특정 상품이 아니면 '채널 광고비로'를 고르세요.</div>
+      <div class="table-wrap"><table><thead><tr><th>광고 상품명 / 옵션</th><th class="n">광고비</th><th>우리 상품</th></tr></thead><tbody>
+      ${AD.unmapped.map((u, i) => `<tr><td style="white-space:normal">${esc(u.rawKey)}</td><td class="n">${won(u.amount)}</td><td><select data-i="${i}" class="adMapSel" style="max-width:360px">${skuOpts(u.suggest)}</select></td></tr>`).join('')}
+      </tbody></table></div>` : '<div class="note">✓ 모든 광고 상품이 연결되어 있습니다.</div>'}
+    ${pickerBlock(false, '열 설정 저장하고 다시 읽기')}
+    <div class="row" style="margin-top:14px">
+      <button class="primary" id="adUpSave">광고비 반영하기</button>
+      <button id="adUpCancel">취소</button>
+    </div>`;
+  bindAdColPicker(fmt);
+  $('#adUpCancel').onclick = () => { AD = null; $('#adResult').innerHTML = ''; };
+  $('#adUpSave').onclick = saveAdReport;
+}
+
+function bindAdColPicker(fmt) {
+  const btn = $('#adColSave'); if (!btn) return;
+  btn.onclick = () => run(async () => {
+    const o = {};
+    $$('#adColPick select').forEach(s => { if (s.value) o[s.dataset.f] = s.value; });
+    await call('api_saveSetting', 'cols:ad:' + fmt, JSON.stringify(o));
+    DATA.settings['cols:ad:' + fmt] = JSON.stringify(o);
+    processAdReport();
+  });
+}
+
+async function saveAdReport() {
+  const chId = AD.channel, pick = {};
+  $$('.adMapSel').forEach(s => { pick[AD.unmapped[+s.dataset.i].rawKey] = s.value; });
+  const missing = Object.values(pick).filter(v => !v).length;
+  if (missing) { toast(`연결 안 된 광고 상품이 ${missing}개 있습니다. 상품이나 '채널 광고비로'를 골라주세요.`, true); return; }
+  const newMaps = Object.entries(pick).map(([rawKey, sku]) => ({ channel: chId, rawKey, sku }));
+  // 날짜·상품별로 합치기
+  const byKey = new Map();
+  AD.ex.lines.forEach(l => {
+    const s = l.sku || pick[l.rawKey];
+    if (s === IGNORE) return;
+    const sku = s === CHANNEL_AD ? '' : s;
+    const k = l.date + '|' + sku;
+    const r = byKey.get(k) || { date: l.date, sku, rawName: sku ? l.rawKey : '(채널 광고비)', amount: 0, adRevenue: 0, adOrders: 0 };
+    r.amount += l.amount; r.adRevenue += l.adRevenue; r.adOrders += l.adOrders;
+    byKey.set(k, r);
+  });
+  const rows = [...byKey.values()].map(r => ({ ...r, amount: Math.round(r.amount), adRevenue: Math.round(r.adRevenue) }));
+  await run(async () => {
+    if (newMaps.length) await call('api_saveMappings', newMaps);
+    const res = await call('api_saveAdReport', { channel: chId, dates: AD.ex.dates, rows, file: AD.file.name, who: safeGet('who') });
+    toast(`광고비 반영 완료 — ${res.added}줄 (기존 ${res.removed}줄 교체)`);
+    AD = null; $('#adResult').innerHTML = '';
+    await reload();
+  });
+}
+$('#adSave').onclick = () => {
+  const date = $('#adDate').value, channel = $('#adChannel').value, amount = Number($('#adAmount').value) || 0;
+  if (!date) return toast('날짜를 고르세요.', true);
+  run(async () => { await call('api_saveAds', [{ date, channel, amount }]); $('#adAmount').value = ''; toast('광고비를 저장했습니다.'); await reload(); });
+};
+
+// ═══════════════════════ 재고 ═══════════════════════
+$('#stockSearch').oninput = () => renderStock();
+function renderStock() {
+  if (!DATA) return;
+  const st = stockState();
+  const q = norm($('#stockSearch').value);
+  const rows = st.rows.filter(r => !q || norm(r.sku + r.name + r.option).includes(q));
+  const order = { out: 0, low: 1, ok: 2 };
+  rows.sort((a, b) => order[a.status] - order[b.status] || (a.daysLeft ?? 1e9) - (b.daysLeft ?? 1e9));
+  const locCols = DATA.locations.map(l => ({
+    label: esc(l.name), n: 1,
+    html: r => {
+      const v = r.byLoc[l.id] || 0, d = r.locDays[l.id];
+      const cls = v < 0 ? 'down' : '';
+      return `<span class="${cls}">${won(v)}</span>` + (d !== null && d !== undefined && v > 0 ? ` <span class="muted">(${d >= 99 ? '99+' : Math.floor(d)}일)</span>` : '');
+    }
+  }));
+  $('#stockTable').innerHTML = table([
+    { label: '상태', html: statusBadge },
+    { label: 'SKU', key: 'sku' },
+    { label: '상품명', key: 'name' },
+    { label: '옵션', key: 'option' },
+    ...locCols,
+    { label: '합계', n: 1, html: r => `<b>${won(r.total)}</b>` },
+    { label: '안전재고', n: 1, html: r => won(r.safetyStock) },
+    { label: '일평균 판매', n: 1, html: r => r.perDay ? r.perDay.toFixed(1) : '-' },
+    { label: '품절 예상일', html: r => r.soldOutDate ? esc(r.soldOutDate) : '-' }
+  ], rows, { empty: DATA.products.length ? '검색 결과가 없습니다.' : '설정 탭에서 상품과 초기 재고를 먼저 올려주세요.' }) +
+    (st.rows.some(r => Object.values(r.byLoc).some(v => v < 0))
+      ? '<div class="note" style="margin-top:8px">⚠ 재고가 마이너스인 상품이 있습니다. 초기 재고나 입고 기록이 빠졌는지 확인해주세요.</div>' : '');
+
+  // 입력 폼
+  const skuOpts = DATA.products.map(p => `<option value="${esc(p.sku)}">${esc(p.sku)} — ${esc(p.name)}${p.option ? ' · ' + esc(p.option) : ''}</option>`).join('');
+  const locOpts = DATA.locations.map(l => `<option value="${esc(l.id)}">${esc(l.name)}</option>`).join('');
+  const keep = { sku: $('#mvSku').value, from: $('#mvFrom').value, to: $('#mvTo').value };
+  $('#mvSku').innerHTML = skuOpts; $('#mvFrom').innerHTML = locOpts; $('#mvTo').innerHTML = locOpts;
+  const keepSk = $('#skLoc').value;
+  $('#skLoc').innerHTML = locOpts;
+  if (keepSk && IDX.loc[keepSk]) $('#skLoc').value = keepSk;
+  if (keep.sku) $('#mvSku').value = keep.sku;
+  if (keep.from) $('#mvFrom').value = keep.from;
+  if (keep.to) $('#mvTo').value = keep.to;
+  if (!$('#mvDate').value) $('#mvDate').value = today();
+  mvTypeChanged();
+
+  const moves = DATA.moves.slice().sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || '')).slice(0, 80);
+  $('#mvList').innerHTML = table([
+    { label: '날짜', key: 'date' },
+    { label: '유형', key: 'type' },
+    { label: '상품', html: r => esc(prodLabel(r.sku)) },
+    { label: '위치', html: r => esc((IDX.loc[r.location] || {}).name || r.location) },
+    { label: '수량', n: 1, html: r => `<span class="${r.qty < 0 ? 'down' : 'up'}">${r.qty > 0 ? '+' : ''}${won(r.qty)}</span>` },
+    { label: '메모', key: 'memo' },
+    { label: '', html: r => `<button class="small" data-del="${esc(r.id)}">삭제</button>` }
+  ], moves, { empty: '기록이 없습니다.' });
+}
+function mvTypeChanged() {
+  const t = $('#mvType').value;
+  $('#mvFromWrap').style.display = t === '이동' ? '' : 'none';
+  $('#mvToLabel').textContent = t === '이동' ? '받는 곳' : '위치';
+  $('#mvQty').min = t === '조정' ? '' : '1';
+}
+$('#mvType').onchange = mvTypeChanged;
+$('#mvSave').onclick = () => {
+  const t = $('#mvType').value, date = $('#mvDate').value, sku = $('#mvSku').value;
+  const qty = Math.round(Number($('#mvQty').value) || 0), memo = $('#mvMemo').value.trim();
+  const to = $('#mvTo').value, from = $('#mvFrom').value;
+  if (!sku) return toast('상품을 고르세요.', true);
+  if (!qty) return toast('수량을 입력하세요.', true);
+  let list;
+  if (t === '이동') {
+    if (from === to) return toast('보낸 곳과 받는 곳이 같습니다.', true);
+    if (qty < 0) return toast('이동 수량은 양수로 입력하세요.', true);
+    list = [{ date, sku, location: from, qty: -qty, type: '이동', memo: memo || '→ ' + IDX.loc[to].name },
+            { date, sku, location: to, qty, type: '이동', memo: memo || '← ' + IDX.loc[from].name }];
+  } else {
+    if (t === '입고' && qty < 0) return toast('입고 수량은 양수로 입력하세요.', true);
+    list = [{ date, sku, location: to, qty, type: t, memo }];
+  }
+  run(async () => { await call('api_addMoves', list); $('#mvQty').value = ''; $('#mvMemo').value = ''; toast(t + ' 등록 완료'); await reload(); });
+};
+$('#mvList').onclick = e => {
+  const id = e.target.dataset && e.target.dataset.del; if (!id) return;
+  if (!confirm('이 재고 기록을 삭제할까요?')) return;
+  run(async () => { await call('api_deleteMove', id); await reload(); });
+};
+
+// ─── 재고 현황 파일 올리기: 파일 날짜 기준으로 위치별 재고를 파일 수량으로 맞춤 ───
+const STOCK_MAP_CH = '__stock__';   // 재고 파일 품목 ↔ 상품 연결을 저장하는 채널 이름
+let SK = null;
+const skDrop = $('#skDrop'), skFile = $('#skFile');
+skDrop.onclick = () => skFile.click();
+skDrop.ondragover = e => { e.preventDefault(); skDrop.classList.add('over'); };
+skDrop.ondragleave = () => skDrop.classList.remove('over');
+skDrop.ondrop = e => { e.preventDefault(); skDrop.classList.remove('over'); if (e.dataTransfer.files[0]) loadStockFile(e.dataTransfer.files[0]); };
+skFile.onchange = () => { if (skFile.files[0]) loadStockFile(skFile.files[0]); skFile.value = ''; };
+
+async function loadStockFile(file) {
+  try {
+    busy(true);
+    const sheets = await readWorkbook(file);
+    const det = detectColumns(sheets, STOCK_PARSER, {});
+    if (!det || det.missing.length || (det.cols.itemId === undefined && det.cols.name === undefined)) {
+      throw new Error('"품목코드"(또는 품목명)와 "재고수량" 열을 찾지 못했습니다.');
+    }
+    SK = { file, ...extractStock(det) };
+    processStockFile();
+  } catch (e) { toast('파일을 읽지 못했습니다: ' + e.message, true); SK = null; $('#skResult').innerHTML = ''; }
+  finally { busy(false); }
+}
+
+function processStockFile() {
+  // 연결 순서: 저장된 연결 → 상품코드가 같은 상품 → 판매 채널에서 같은 코드로 연결된 상품
+  const byIdAny = {};
+  DATA.mappings.forEach(m => { const id = (m.rawKey.match(/ #(.+)$/) || [])[1]; if (id && m.sku && m.sku !== IGNORE && m.sku !== CHANNEL_AD) byIdAny[id] = m.sku; });
+  SK.items.forEach(x => {
+    x.sku = IDX.map[STOCK_MAP_CH + '|' + x.rawKey] ||
+      (x.itemId && DATA.products.find(p => norm(p.sku) === norm(x.itemId)) || {}).sku ||
+      (x.itemId && byIdAny[x.itemId]) || '';
+    x.auto = !!x.sku;
+  });
+  const skuOpts = sel => `<option value="${IGNORE}" ${!sel || sel === IGNORE ? 'selected' : ''}>(반영 안 함)</option>` +
+    DATA.products.map(p => `<option value="${esc(p.sku)}" ${p.sku === sel ? 'selected' : ''}>${esc(p.sku)} — ${esc(p.name)}${p.option ? ' · ' + esc(p.option) : ''}</option>`).join('');
+  const loc = IDX.loc[$('#skLoc').value] || {};
+  const matched = SK.items.filter(x => x.sku && x.sku !== IGNORE).length;
+  const stRows = stockState().rows;
+  $('#skResult').innerHTML = `
+    <h3>${bizTag()}${esc(SK.file.name)} — ${esc(SK.date)} 기준 · ${esc(loc.name || '')}</h3>
+    <div class="note" style="margin-bottom:8px">품목 ${SK.items.length}개 중 <b>${matched}</b>개가 등록된 상품과 연결됐습니다.
+      연결 안 된 품목은 '(반영 안 함)'으로 두거나, 같은 상품이면 골라주세요. 고른 연결은 다음부터 자동으로 적용됩니다.</div>
+    <div class="table-wrap" style="max-height:420px"><table><thead><tr><th>품목코드</th><th>품목명</th><th class="n">파일 재고</th><th class="n">현재 사이트 재고</th><th>우리 상품</th></tr></thead><tbody>
+    ${SK.items.map((x, i) => {
+      const cur = x.sku && x.sku !== IGNORE ? ((stRows.find(r => r.sku === x.sku) || { byLoc: {} }).byLoc[loc.id] || 0) : '';
+      return `<tr><td>${esc(x.itemId)}</td><td style="white-space:normal">${esc(x.name)}</td><td class="n">${won(x.qty)}</td><td class="n">${cur === '' ? '-' : won(cur)}</td>
+        <td><select data-i="${i}" class="skSel" style="max-width:320px">${skuOpts(x.sku)}</select>${x.auto ? ' <span class="muted">자동</span>' : ''}</td></tr>`;
+    }).join('')}
+    </tbody></table></div>
+    <div class="row" style="margin-top:12px"><button class="primary" id="skSave">재고 반영하기</button><button id="skCancel">취소</button></div>`;
+  $('#skCancel').onclick = () => { SK = null; $('#skResult').innerHTML = ''; };
+  $('#skSave').onclick = saveStockFile;
+}
+$('#skLoc').onchange = () => { if (SK) processStockFile(); };
+
+function saveStockFile() {
+  const location = $('#skLoc').value, maps = [], bySku = new Map();
+  $$('.skSel').forEach(s => {
+    const x = SK.items[+s.dataset.i], sku = s.value;
+    if (!x.auto || sku !== x.sku) maps.push({ channel: STOCK_MAP_CH, rawKey: x.rawKey, sku });
+    if (sku && sku !== IGNORE) bySku.set(sku, (bySku.get(sku) || 0) + x.qty);   // 같은 상품에 여러 품목을 연결하면 합산
+  });
+  if (!bySku.size) return toast('반영할 상품이 없습니다. 연결할 상품을 골라주세요.', true);
+  const moves = [...bySku].map(([sku, qty]) => ({ date: SK.date, sku, location, qty, type: SNAPSHOT, memo: SK.file.name }));
+  run(async () => {
+    if (maps.length) await call('api_saveMappings', maps);
+    await call('api_addMoves', moves);
+    toast(`${moves.length}개 상품의 재고를 ${SK.date} 기준으로 맞췄습니다.`);
+    SK = null; $('#skResult').innerHTML = '';
+    await reload();
+  });
+}
+
+// ═══════════════════════ 설정 ═══════════════════════
+const PROD_HEAD = ['SKU코드', '상품명', '옵션', '원가', '쿠팡공급가', '안전재고'];
+function initHeads() { return DATA.locations.map(l => '초기재고:' + l.name); }
+
+$('#tplProducts').onclick = () => downloadXlsx('상품_양식.xlsx', '상품',
+  [PROD_HEAD.concat(initHeads(), ['초기재고기준일']), ['A001-BK-M', '예시 티셔츠', '블랙 / M', 8000, 15000, 20].concat(DATA.locations.map((l, i) => i === 0 ? 100 : 0), [today()])]);
+$('#exportProducts').onclick = () => downloadXlsx('상품목록.xlsx', '상품',
+  [PROD_HEAD.concat(initHeads())].concat(DATA.products.map(p => [p.sku, p.name, p.option, p.cost, p.supplyPrice, p.safetyStock].concat(DATA.locations.map(() => '')))));
+$('#tplStandard').onclick = () => downloadXlsx('공동구매_통합양식.xlsx', '판매',
+  [['날짜', '상품명', '옵션', '수량', '판매금액', '반품수량', '비고'], [today(), '예시 티셔츠', '블랙 / M', 10, 150000, 0, '○○ 공구']]);
+
+const prodDrop = $('#prodDrop'), prodFile = $('#prodFile');
+prodDrop.onclick = () => prodFile.click();
+prodDrop.ondragover = e => { e.preventDefault(); prodDrop.classList.add('over'); };
+prodDrop.ondragleave = () => prodDrop.classList.remove('over');
+prodDrop.ondrop = e => { e.preventDefault(); prodDrop.classList.remove('over'); if (e.dataTransfer.files[0]) loadProducts(e.dataTransfer.files[0]); };
+prodFile.onchange = () => { if (prodFile.files[0]) loadProducts(prodFile.files[0]); prodFile.value = ''; };
+
+let PROD_UP = null;
+async function loadProducts(file) {
+  try {
+    const sheets = await readWorkbook(file);
+    const rows = sheets[0].rows;
+    const hi = rows.findIndex(r => r.some(c => norm(c) === norm('SKU코드')));
+    if (hi < 0) throw new Error('"SKU코드" 열이 있는 머리행을 찾지 못했습니다. 상품 양식을 사용해주세요.');
+    const head = rows[hi].map(norm);
+    const col = n => head.indexOf(norm(n));
+    const c = { sku: col('SKU코드'), name: col('상품명'), option: col('옵션'), cost: col('원가'), supply: col('쿠팡공급가'), safety: col('안전재고'), date: col('초기재고기준일') };
+    if (c.name < 0 || c.cost < 0) throw new Error('"상품명", "원가" 열이 필요합니다.');
+    const locCols = DATA.locations.map(l => ({ id: l.id, i: col('초기재고:' + l.name) })).filter(x => x.i >= 0);
+    const products = [], initial = [], seen = new Set();
+    for (let r = hi + 1; r < rows.length; r++) {
+      const row = rows[r];
+      const sku = String(row[c.sku] ?? '').trim();
+      if (!sku) continue;
+      if (seen.has(sku)) throw new Error(`SKU코드 "${sku}"가 파일에 두 번 있습니다.`);
+      seen.add(sku);
+      products.push({
+        sku, name: String(row[c.name] ?? '').trim(), option: c.option >= 0 ? String(row[c.option] ?? '').trim() : '',
+        cost: toNumber(row[c.cost]), supplyPrice: c.supply >= 0 ? toNumber(row[c.supply]) : 0,
+        safetyStock: c.safety >= 0 ? toNumber(row[c.safety]) : 0, memo: ''
+      });
+      const d = c.date >= 0 ? toDate(row[c.date]) : '';
+      locCols.forEach(lc => {
+        const v = row[lc.i];
+        if (v !== '' && v != null) initial.push({ sku, location: lc.id, qty: toNumber(v), date: d });
+      });
+    }
+    if (!products.length) throw new Error('상품 행이 없습니다.');
+    PROD_UP = { products, initial };
+    const newCnt = products.filter(p => !IDX.prod[p.sku]).length;
+    $('#prodPreview').innerHTML = `<div class="note">
+      ${bizTag()}상품 <b>${products.length}</b>개 (새 상품 ${newCnt}, 수정 ${products.length - newCnt}) ·
+      초기재고 <b>${initial.length}</b>칸 ${initial.length ? '(같은 SKU·위치의 기존 초기재고는 이 값으로 바뀝니다)' : ''}
+      <div class="row" style="margin-top:8px"><button class="primary" id="prodSave">저장</button><button id="prodCancel">취소</button></div></div>`;
+    $('#prodSave').onclick = () => run(async () => {
+      await call('api_saveProducts', PROD_UP.products, PROD_UP.initial);
+      toast('상품을 저장했습니다.'); PROD_UP = null; $('#prodPreview').innerHTML = ''; await reload();
+    });
+    $('#prodCancel').onclick = () => { PROD_UP = null; $('#prodPreview').innerHTML = ''; };
+  } catch (e) { toast(e.message, true); }
+}
+
+function renderSettings() {
+  $('#prodList').innerHTML = table([
+    { label: 'SKU', key: 'sku' }, { label: '상품명', key: 'name' }, { label: '옵션', key: 'option' },
+    { label: '원가', n: 1, html: r => won(r.cost) }, { label: '쿠팡공급가', n: 1, html: r => r.supplyPrice ? won(r.supplyPrice) : '-' },
+    { label: '안전재고', n: 1, html: r => won(r.safetyStock) },
+    { label: '', html: r => `<button class="small" data-delp="${esc(r.sku)}">삭제</button>` }
+  ], DATA.products, { empty: '등록된 상품이 없습니다. 양식을 내려받아 채운 뒤 올려주세요.' });
+
+  const parserOpts = sel => Object.entries(PARSERS).map(([k, p]) => `<option value="${k}" ${k === sel ? 'selected' : ''}>${esc(p.label)}</option>`).join('');
+  const locOpts = sel => DATA.locations.map(l => `<option value="${esc(l.id)}" ${l.id === sel ? 'selected' : ''}>${esc(l.name)}</option>`).join('');
+  const yn = (f, v) => `<select data-f="${f}"><option ${v === 'Y' ? 'selected' : ''}>Y</option><option ${v !== 'Y' ? 'selected' : ''}>N</option></select>`;
+  const groupOpts = sel => GROUPS.concat(GROUPS.includes(sel) ? [] : [sel]).map(g => `<option ${g === sel ? 'selected' : ''}>${esc(g)}</option>`).join('');
+  $('#chList').innerHTML = `<table><thead><tr><th>사용</th><th>채널명</th><th>그룹</th><th>파일 형식</th><th class="n">수수료율(%)</th><th class="n">건당 배송비</th><th class="n">반품 개당 비용</th><th>출고 위치</th><th>공급가 기준</th><th>수수료 변경 <span class="muted">(예: 2026-08-01 22)</span></th><th>판매가 규칙 <span class="muted">(예: C05BD-* 39900 2026-08-01)</span></th></tr></thead><tbody>` +
+    DATA.channels.map(c => `<tr data-id="${esc(c.id)}">
+      <td>${yn('active', c.active)}</td>
+      <td><input data-f="name" value="${esc(c.name)}" style="width:150px"></td>
+      <td><select data-f="group">${groupOpts(c.group)}</select></td>
+      <td><select data-f="parser" style="max-width:220px">${parserOpts(c.parser)}</select></td>
+      <td class="n"><input type="number" step="0.1" data-f="feeRate" value="${c.feeRate}" style="width:80px"></td>
+      <td class="n"><input type="number" step="100" data-f="shipPerOrder" value="${c.shipPerOrder}" style="width:90px"></td>
+      <td class="n"><input type="number" step="100" data-f="returnCost" value="${c.returnCost}" style="width:90px"></td>
+      <td><select data-f="location">${locOpts(c.location)}</select></td>
+      <td>${yn('useSupplyPrice', c.useSupplyPrice)}</td>
+      <td><input data-f="feeChanges" value="${esc(c.feeChanges || '')}" style="width:150px" title="날짜 수수료율, 여러 개는 ; 로 구분"></td>
+      <td><input data-f="priceRules" value="${esc(c.priceRules || '')}" style="width:260px" title="상품코드(끝에 * 가능) 판매가 [시작일] [수수료%], 여러 개는 ; 로 구분. 판매가는 파일에 금액이 없는 줄에만, 수수료%는 그 상품에만 적용"></td></tr>`).join('') + '</tbody></table>';
+
+  if (!$('#chNewGroup').options.length) {
+    $('#chNewGroup').innerHTML = GROUPS.map(g => `<option>${esc(g)}</option>`).join('');
+    $('#chNewParser').innerHTML = parserOpts('standard');
+  }
+
+  $('#locList').innerHTML = table([
+    { label: '위치 ID', key: 'id' },
+    { label: '이름', html: r => `<input data-loc="${esc(r.id)}" value="${esc(r.name)}">` },
+    { label: '', html: r => `<button class="small" data-locsave="${esc(r.id)}">이름 저장</button>` }
+  ], DATA.locations);
+}
+
+$('#prodList').onclick = e => {
+  const sku = e.target.dataset && e.target.dataset.delp; if (!sku) return;
+  if (!confirm(`상품 "${sku}"를 삭제할까요? (재고·판매 기록은 남습니다)`)) return;
+  run(async () => { await call('api_deleteProduct', sku); await reload(); });
+};
+
+$('#chAdd').onclick = () => {
+  const name = $('#chNewName').value.trim();
+  if (!name) return toast('채널명을 입력하세요.', true);
+  if (DATA.channels.some(c => c.name === name)) return toast('같은 이름의 채널이 있습니다.', true);
+  const ch = { id: 'ch' + Date.now().toString(36), name, group: $('#chNewGroup').value, parser: $('#chNewParser').value,
+    feeRate: 0, shipPerOrder: 0, returnCost: 0, location: (DATA.locations[0] || {}).id || 'main', useSupplyPrice: 'N', active: 'Y' };
+  run(async () => { await call('api_saveChannels', DATA.channels.concat([ch])); $('#chNewName').value = ''; toast(name + ' 채널을 추가했습니다.'); await reload(); });
+};
+
+$('#chSave').onclick = () => {
+  const list = $$('#chList tbody tr').map(tr => {
+    const o = { ...IDX.ch[tr.dataset.id] };
+    tr.querySelectorAll('[data-f]').forEach(el => {
+      o[el.dataset.f] = el.type === 'number' ? Number(el.value) || 0 : el.value;
+    });
+    return o;
+  });
+  run(async () => { await call('api_saveChannels', list); toast('채널 설정을 저장했습니다.'); await reload(); });
+};
+
+$('#locAdd').onclick = () => {
+  const name = $('#locName').value.trim(); if (!name) return;
+  const id = 'loc' + Date.now().toString(36);
+  run(async () => { await call('api_saveLocations', DATA.locations.concat([{ id, name }])); $('#locName').value = ''; await reload(); });
+};
+$('#locList').onclick = e => {
+  const id = e.target.dataset && e.target.dataset.locsave; if (!id) return;
+  const name = $(`[data-loc="${id}"]`).value.trim(); if (!name) return;
+  run(async () => { await call('api_saveLocations', DATA.locations.map(l => l.id === id ? { id, name } : l)); await reload(); });
+};
+
+// ═══════════════════════ 시작 ═══════════════════════
+(async function start() {
+  const saved = sessGet('pw');
+  if (!saved) return showLogin();
+  PW = saved;
+  busy(true);
+  try { setupBiz(await call('api_login')); $('#login').style.display = 'none'; await reload(); }
+  catch (e) { if (!/AUTH/.test(e.message)) showLogin(e.message); }
+  finally { busy(false); }
+})();
+</script>
+
+</body>
+</html>
